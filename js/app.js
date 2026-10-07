@@ -391,6 +391,7 @@
       if (a === 'fail') this.taskEnd(d.id, 'abandonó');
       if (a === 'copy') { copyText(JSON.stringify({ tareas: S().tasks, registro: S().log }, null, 2)); UI.toast('Copiamos los resultados.'); }
       if (a === 'toggle') this.setOpen(!this.open);
+      if (a === 'auto') { S().auto = S().auto === false; C.save(); C.logEvent('facilitador', 'avance automático ' + (S().auto === false ? 'no' : 'sí')); }
       this.refresh();
     },
     createReady() {
@@ -422,6 +423,7 @@
         '<p class="fac-n">Esto no lo ve quien prueba. Mostralo solo si hace falta (<kbd>Shift</kbd>+<kbd>F</kbd> lo oculta).</p>' +
         '<section><h4>Pedido activo</h4>' + (o ? '<p class="fst"><b>' + (labels[o.status] || 'Entregado') + '</b> · ' + (o.delivery === 'locker' ? 'Locker' : 'Domicilio') + '</p><div class="fbtns"><button class="pri" data-f="next"' + (C.statusIdx(o) >= seq.length - 1 ? ' disabled' : '') + '>Avanzar estado →</button></div><select id="f-status" aria-label="Saltar a estado">' + seq.map(s => '<option value="' + s + '"' + (s === o.status ? ' selected' : '') + '>' + (labels[s] || 'Entregado') + '</option>').join('') + '</select>' : '<p class="fst muted">No hay pedidos en curso. Completá una compra o creá un pedido listo.</p>') +
         '<div class="fbtns"><button data-f="ready">Crear pedido listo para retirar</button></div></section>' +
+        '<section><h4>Avance automático</h4><p class="fst muted">El pedido avanza solo cada ~7 s hasta “Listo para retirar”. Apagalo si querés controlarlo vos.</p><div class="fbtns"><button data-f="auto">' + (S().auto === false ? 'Apagado · Encender' : 'Encendido · Apagar') + '</button></div></section>' +
         '<section><h4>Ir a</h4><div class="fbtns"><button data-f="go" data-to="home">Inicio</button><button data-f="go" data-to="orders">Pedidos</button><button data-f="go" data-to="lockerTab">Locker</button></div></section>' +
         '<section><h4>Tareas</h4>' + tasks + '</section>' +
         '<section><h4>Registro</h4><ul class="flog">' + (logs || '<li class="muted">Sin eventos todavía.</li>') + '</ul><div class="fbtns"><button data-f="copy">Copiar resultados</button><button class="danger" data-f="reset">Reiniciar prototipo</button></div></section>';
@@ -429,6 +431,17 @@
   };
   window.FAC = FAC;
   setInterval(() => { $$('.run[data-t0]').forEach(e => { e.textContent = 'en curso · ' + Math.round((Date.now() - Number(e.dataset.t0)) / 1000) + ' s'; }); }, 1000);
+
+  /* ---------- Avance automático del pedido ---------- */
+  const AUTO_MS = 7000;
+  setInterval(() => {
+    if (S().auto === false || !S().loggedIn) return;
+    const o = FAC.activeOrder();
+    if (!o || o.status === 'ready') return;
+    if (Date.now() - (o.times[o.status] || o.createdAt) < AUTO_MS) return;
+    if (!C.advanceOrder(o)) return;
+    if (['home', 'orders', 'tracking', 'lockerTab'].indexOf(R.cur().name) >= 0) rerender(); else { refreshBadges(); FAC.refresh(); }
+  }, 1000);
 
   /* ---------- Boot ---------- */
   window.APP = { render, rerender, refreshBadges };

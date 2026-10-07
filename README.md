@@ -9,7 +9,7 @@ Abrí `index.html` en el navegador (doble clic). En escritorio se muestra dentro
 - El estado se guarda en `localStorage`. Para empezar de cero: botón **Reiniciar prototipo** del panel.
 
 ## Panel del facilitador
-Avanzar o saltar el estado del pedido (confirmado → preparación → tránsito → en el locker → listo → retirado), crear un pedido ya listo para probar solo el retiro, tareas con cronómetro y conteo de clics/errores, registro de eventos y copia de resultados en JSON.
+El pedido avanza solo cada ~7 s hasta "Listo para retirar" (se apaga desde el panel). Además se puede avanzar o saltar el estado del pedido (confirmado → preparación → tránsito → en el locker → listo → retirado), crear un pedido ya listo para probar solo el retiro, tareas con cronómetro y conteo de clics/errores, registro de eventos y copia de resultados en JSON.
 
 ## Estructura
 `index.html` · `css/styles.css` (tokens del UI Kit) · `js/data.js` (datos mock) · `js/core.js` (estado, router, íconos) · `js/ui.js` (componentes) · `js/screens.js` (pantallas) · `js/app.js` (acciones y facilitador) · `assets/` (recortes de los PDF).
