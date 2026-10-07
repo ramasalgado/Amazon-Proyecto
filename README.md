@@ -3,7 +3,7 @@
 Prototipo web (HTML/CSS/JS, sin dependencias ni backend) de la experiencia de compra, seguimiento y retiro en Amazon Hub Locker. Pensado para pruebas de usabilidad.
 
 ## Cómo ejecutarlo
-Abrí `index.html` en el navegador (doble clic). En escritorio se muestra dentro de un marco de celular con el **panel del facilitador** al costado; en un celular ocupa toda la pantalla.
+Abrí `index.html` en el navegador (doble clic). Arranca en la bienvenida (iniciar sesión o crear cuenta; hay un acceso rápido a la cuenta de prueba tomas@mail.com / demo1234). En escritorio se muestra dentro de un marco de iPhone 17 con el **panel del facilitador** al costado; en un celular ocupa toda la pantalla.
 
 - `?f=0` oculta el panel · `?f=1` lo muestra · `Shift+F` lo alterna.
 - El estado se guarda en `localStorage`. Para empezar de cero: botón **Reiniciar prototipo** del panel.

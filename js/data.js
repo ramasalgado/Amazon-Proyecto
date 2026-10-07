@@ -3,7 +3,7 @@
    Todo es ficticio. Contexto: Tomás, 22 años, CABA.
    ============================================================ */
 window.DATA = {
-  user: { name: 'Tomás', email: 'tomas@mail.com', initial: 'T' },
+  demoAccount: { name: 'Tomás', email: 'tomas@mail.com', pass: 'demo1234' },
 
   address: 'Av. Principal 123, CABA',
   addresses: [

@@ -22,16 +22,41 @@
   const lockerName = l => (l.type === 'super' ? l.name : 'Amazon Hub Locker ' + l.name);
 
   /* ============================================================
-     LOGIN
+     ACCESO: bienvenida / iniciar sesión / crear cuenta
      ============================================================ */
+  const eye = (id) => '<button type="button" class="eye" data-act="togglePass" data-target="' + id + '" aria-label="Mostrar contraseña">' + ic('eye', 22) + '</button>';
+  const fld = (id, label, o) => {
+    o = o || {};
+    return '<div class="field" id="f-' + id + '"><label for="' + id + '">' + label + '</label><div class="inwrap"><input id="' + id + '" type="' + (o.type || 'text') + '" placeholder="' + esc(o.ph || '') + '" autocomplete="off" ' + (o.val ? 'value="' + esc(o.val) + '" ' : '') + (o.mode ? 'inputmode="' + o.mode + '"' : '') + '>' + (o.type === 'password' ? eye(id) : '') + '</div><p class="ferr" id="e-' + id + '" hidden></p>' + (o.hint ? '<p class="fhint">' + o.hint + '</p>' : '') + '</div>';
+  };
+  SC.welcome = {
+    render() {
+      return UI.page({ cls: 'welcome', body:
+        '<div class="w-bg"><img src="assets/locker-cover.jpg" alt=""></div><div class="w-in"><div class="w-logo">' + C.LOGO + '</div>' +
+        '<div class="w-copy"><span class="w-tag">Amazon Hub Locker</span><h1>Tus pedidos,<br><em>en tus tiempos.</em></h1><p>Elegí un locker cerca tuyo y retirá tus compras cuando te quede cómodo.</p></div>' +
+        '<div class="w-act">' + UI.btn('Iniciar sesión', 'goLogin', { arrow: true }) + UI.btn('Crear cuenta', 'goRegister', { kind: 'secondary', cls: 'on-dark' }) + '<p class="w-fine">Compra hoy, retira cuando quieras.</p></div></div>' });
+    }
+  };
   SC.login = {
     render() {
-      return UI.page({ cls: 'login', body:
-        '<div class="login-box"><div class="login-logo">' + C.LOGO + '</div><h1>Hola, qué bueno verte.</h1><p class="lead">Ingresá para ver tus pedidos y retirarlos cuando quieras.</p>' +
-        '<label class="field"><span>Email</span><input id="lg-email" type="email" autocomplete="off" placeholder="nombre@mail.com" value="' + esc(D.user.email) + '"></label>' +
-        '<label class="field"><span>Contraseña</span><input id="lg-pass" type="password" autocomplete="off" placeholder="Tu contraseña" value="demo1234"></label>' +
-        '<p class="field-err" id="lg-err" hidden></p>' +
-        UI.btn('Ingresar', 'login', { arrow: true }) + '</div>' });
+      const body = '<div class="pad-x auth"><h1 class="h1">Iniciá sesión</h1><p class="lead">Ingresá con tu email para ver tus pedidos y retirarlos.</p>' +
+        fld('lg-email', 'Email', { type: 'email', ph: 'nombre@mail.com', mode: 'email' }) + fld('lg-pass', 'Contraseña', { type: 'password', ph: 'Tu contraseña' }) +
+        '<button type="button" class="link" data-act="forgot">¿Olvidaste tu contraseña?</button><p class="ferr form" id="lg-err" hidden></p>' +
+        '<div class="sp"></div>' + UI.btn('Ingresar', 'login', { arrow: true, id: 'btn-login' }) +
+        '<div class="or"><span>o</span></div>' + UI.btn('Crear cuenta nueva', 'goRegister', { kind: 'secondary' }) +
+        '<button type="button" class="link demo" data-act="useDemo">Completar con la cuenta de prueba</button></div><div class="sp-lg"></div>';
+      return UI.page({ header: UI.hdr({}), body, cls: 'authscr' });
+    }
+  };
+  SC.register = {
+    render() {
+      const body = '<div class="pad-x auth"><h1 class="h1">Creá tu cuenta</h1><p class="lead">Son 4 datos y ya podés elegir dónde retirar tus compras.</p>' +
+        fld('rg-name', 'Nombre', { ph: 'Cómo te llamás' }) + fld('rg-email', 'Email', { type: 'email', ph: 'nombre@mail.com', mode: 'email' }) +
+        fld('rg-pass', 'Contraseña', { type: 'password', ph: 'Mínimo 6 caracteres', hint: 'Usá al menos 6 caracteres e incluí un número.' }) + fld('rg-pass2', 'Repetí la contraseña', { type: 'password', ph: 'Repetí tu contraseña' }) +
+        '<div class="field check" id="f-rg-terms"><button type="button" class="cb" role="checkbox" aria-checked="false" id="rg-terms" data-act="toggleTerms"><i>' + ic('check', 16) + '</i><span>Acepto los <u>términos y condiciones</u> y la política de privacidad.</span></button><p class="ferr" id="e-rg-terms" hidden></p></div>' +
+        '<p class="ferr form" id="rg-err" hidden></p>' + UI.btn('Crear cuenta', 'register', { arrow: true, id: 'btn-register' }) +
+        '<p class="switch">¿Ya tenés cuenta? <button type="button" class="link inline" data-act="goLogin">Iniciá sesión</button></p></div><div class="sp-lg"></div>';
+      return UI.page({ header: UI.hdr({}), body, cls: 'authscr' });
     }
   };
 
@@ -515,7 +540,7 @@
   SC.profile = {
     render() {
       const pr = S().prefs, favs = S().favorites.length;
-      const body = '<div class="pad-x"><div class="who"><span class="avatar">' + D.user.initial + '<i></i></span><div><h1>Hola, ' + D.user.name + '</h1><span class="muted">' + esc(D.user.email) + '</span></div></div>' +
+      const body = '<div class="pad-x"><div class="who"><span class="avatar">' + esc((S().user || D.demoAccount).name.charAt(0).toUpperCase()) + '<i></i></span><div><h1>Hola, ' + esc((S().user || D.demoAccount).name) + '</h1><span class="muted">' + esc((S().user || D.demoAccount).email) + '</span></div></div>' +
         '<div class="list-card">' + row('orders', 'Mis pedidos', 'Seguí tus compras', 'tab', { to: 'orders' }) + row('heart', 'Lockers favoritos', favs ? favs + (favs === 1 ? ' guardado' : ' guardados') : 'Todavía no guardaste ninguno', 'showFavs') + row('pin', 'Direcciones', S().checkout.address, 'chooseAddress') + row('card', 'Métodos de pago', 'Visa •••• 1234', 'choosePayment') + '</div>' +
         '<div class="sec-h"><h2>Avisos</h2></div><div class="list-card pad">' + UI.sw('push', pr.push, 'Notificaciones en la app', 'Estado del pedido y código de retiro') + UI.sw('email', pr.email, 'Avisos por email', 'Resumen de tus compras') + '</div>' +
         '<div class="list-card spaced">' + row('help', 'Ayuda', 'Preguntas frecuentes y soporte', 'goHelp') + row('out', 'Cerrar sesión', 'Salir de tu cuenta', 'logout') + '</div></div><div class="sp-lg"></div>';

@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   const D = window.DATA;
-  const KEY = 'amazon-hub-locker-proto-v1';
+  const KEY = 'amazon-hub-locker-proto-v2';
 
   /* ---------- Utilidades ---------- */
   const $ = (s, r) => (r || document).querySelector(s);
@@ -55,8 +55,10 @@
       notifications: [],
       prefs: { push: true, email: true },
       recent: [],
-      loggedIn: true,
-      nav: [{ name: 'home', params: {} }],
+      loggedIn: false,
+      user: null,
+      accounts: [Object.assign({}, D.demoAccount)],
+      nav: [{ name: 'welcome', params: {} }],
       log: [],
       tasks: {},
       seen: {}
@@ -64,7 +66,7 @@
   }
   let S;
   try { S = JSON.parse(localStorage.getItem(KEY)) || initialState(); } catch (e) { S = initialState(); }
-  if (!S.nav || !S.nav.length) S.nav = [{ name: 'home', params: {} }];
+  if (!S.nav || !S.nav.length) S.nav = [{ name: 'welcome', params: {} }];
   let saveT;
   function save() {
     clearTimeout(saveT);
@@ -192,6 +194,8 @@
     card: '<rect x="3" y="5.500" width="18" height="13" rx="2.500"/><path d="M3 10h18M7 15h3"/>',
     star: '<path d="M12 3.500l2.700 5.500 6 .9-4.400 4.200 1 6-5.300-2.800-5.300 2.800 1-6L3.300 9.900l6-.9z"/>',
     scan: '<path d="M4 8V5.500A1.500 1.500 0 015.500 4H8M16 4h2.500A1.500 1.500 0 0120 5.500V8M20 16v2.500a1.500 1.500 0 01-1.500 1.500H16M8 20H5.500A1.500 1.500 0 014 18.500V16"/>',
+    eye: '<path d="M2 12s3.600-6.500 10-6.500S22 12 22 12s-3.600 6.500-10 6.500S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    eyeoff: '<path d="M3 3l18 18M10.600 6a9.800 9.800 0 011.400-.1C18.400 5.900 22 12 22 12a17 17 0 01-3.200 3.900M6.600 7.600A16.600 16.600 0 002 12s3.600 6.500 10 6.500c1.600 0 3-.4 4.300-1M9.900 9.900a3 3 0 004.200 4.200"/>',
     support: '<path d="M4 13v-1a8 8 0 0116 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.500"/><rect x="17" y="13" width="4" height="6" rx="1.500"/><path d="M19 19c0 1.400-1.800 2-4 2"/>'
   };
   function ic(name, size, cls) {

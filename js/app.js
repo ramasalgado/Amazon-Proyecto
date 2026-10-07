@@ -17,7 +17,8 @@
     timers.splice(0).forEach(clearTimeout);
     if (!o.keep) { UI.closeSheet(true); UI.closeModal(); }
     const cur = R.cur();
-    const name = S().loggedIn ? cur.name : 'login';
+    const AUTH = ['welcome', 'login', 'register'];
+    const name = S().loggedIn ? cur.name : (AUTH.indexOf(cur.name) >= 0 ? cur.name : 'welcome');
     const sc = SC[name] || SC.home;
     const stage = $('#screen');
     const prev = $('#content', stage);
@@ -72,6 +73,14 @@
     const a = document.createElement('textarea'); a.value = t; a.style.position = 'fixed'; a.style.opacity = '0'; document.body.appendChild(a); a.select();
     try { document.execCommand('copy'); } catch (e) { /* noop */ } a.remove();
   }
+  function fieldErr(id, msg) { const f = $('#f-' + id), e = $('#e-' + id); if (f) f.classList.add('err'); if (e) { e.textContent = msg; e.hidden = false; } }
+  function fieldOk(id) { const f = $('#f-' + id), e = $('#e-' + id); if (f) f.classList.remove('err'); if (e) e.hidden = true; }
+  function clearErrs() { $$('.field.err').forEach(f => f.classList.remove('err')); $$('.ferr').forEach(e => { e.hidden = true; }); }
+  function enterApp(acc, isNew) {
+    S().user = { name: acc.name, email: acc.email }; S().loggedIn = true; C.logEvent(isNew ? 'registro' : 'login', acc.email);
+    S().nav = [{ name: 'home', params: {} }]; R.dir = 'fade'; C.save(); render();
+    UI.toast(isNew ? '¡Listo, ' + acc.name + '! Tu cuenta está creada.' : 'Hola de nuevo, ' + acc.name + '.');
+  }
   const orderOf = id => S().orders.find(o => o.id === id);
 
   /* ============================================================
@@ -90,17 +99,58 @@
     goNotifications() { R.go('notifications'); },
     goHelp() { R.go('help'); },
 
-    /* ----- Login ----- */
-    login() {
-      const e = $('#lg-email').value.trim(), p = $('#lg-pass').value, err = $('#lg-err');
-      let m = '';
-      if (!/^\S+@\S+\.\S+$/.test(e)) m = 'Revisá tu email. Tiene que tener un formato como nombre@mail.com.';
-      else if (p.length < 6) m = 'Tu contraseña tiene que tener al menos 6 caracteres.';
-      if (m) { err.textContent = m; err.hidden = false; return; }
-      S().loggedIn = true; C.logEvent('login', e); R.reset('home');
+    /* ----- Acceso ----- */
+    goLogin() { if (R.cur().name === 'register') R.replace('login'); else R.go('login'); },
+    goRegister() { if (R.cur().name === 'login') R.replace('register'); else R.go('register'); },
+    togglePass(el) {
+      const i = $('#' + el.dataset.target), show = i.type === 'password';
+      i.type = show ? 'text' : 'password';
+      el.innerHTML = ic(show ? 'eyeoff' : 'eye', 22); el.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    },
+    toggleTerms(el) { const on = el.getAttribute('aria-checked') !== 'true'; el.setAttribute('aria-checked', on); if (on) fieldOk('rg-terms'); },
+    useDemo() { $('#lg-email').value = D.demoAccount.email; $('#lg-pass').value = D.demoAccount.pass; $$('.field.err').forEach(f => f.classList.remove('err')); $$('.ferr').forEach(e => { e.hidden = true; }); },
+    login(el) {
+      const e = $('#lg-email').value.trim().toLowerCase(), p = $('#lg-pass').value; let bad = false;
+      clearErrs();
+      if (!/^\S+@\S+\.\S+$/.test(e)) { fieldErr('lg-email', e ? 'Revisá tu email. Tiene que tener un formato como nombre@mail.com.' : 'Ingresá tu email.'); bad = true; }
+      if (!p) { fieldErr('lg-pass', 'Ingresá tu contraseña.'); bad = true; }
+      if (bad) return;
+      btnLoading(el, true);
+      later(() => {
+        const acc = S().accounts.find(a => a.email === e && a.pass === p);
+        if (!acc) { btnLoading(el, false); C.logEvent('error', 'login incorrecto'); const m = $('#lg-err'); m.textContent = 'El email o la contraseña no coinciden. Revisalos e intentá de nuevo.'; m.hidden = false; return; }
+        enterApp(acc, false);
+      }, 900);
+    },
+    register(el) {
+      const n = $('#rg-name').value.trim(), e = $('#rg-email').value.trim().toLowerCase(), p = $('#rg-pass').value, p2 = $('#rg-pass2').value, t = $('#rg-terms').getAttribute('aria-checked') === 'true'; let bad = false;
+      clearErrs();
+      if (n.length < 2) { fieldErr('rg-name', 'Contanos cómo te llamás.'); bad = true; }
+      if (!/^\S+@\S+\.\S+$/.test(e)) { fieldErr('rg-email', e ? 'Revisá tu email. Tiene que tener un formato como nombre@mail.com.' : 'Ingresá tu email.'); bad = true; }
+      else if (S().accounts.some(a => a.email === e)) { fieldErr('rg-email', 'Ya hay una cuenta con este email. Probá iniciando sesión.'); bad = true; }
+      if (p.length < 6 || !/\d/.test(p)) { fieldErr('rg-pass', 'Usá al menos 6 caracteres e incluí un número.'); bad = true; }
+      if (p2 !== p) { fieldErr('rg-pass2', 'Las contraseñas no coinciden.'); bad = true; }
+      if (!t) { fieldErr('rg-terms', 'Aceptá los términos para crear tu cuenta.'); bad = true; }
+      if (bad) { C.logEvent('error', 'registro con errores'); const f = $('.field.err input'); if (f) f.focus(); return; }
+      btnLoading(el, true);
+      later(() => {
+        const acc = { name: n, email: e, pass: p }; S().accounts.push(acc);
+        S().orders = []; S().cart = []; S().favorites = []; S().notifications = [];
+        enterApp(acc, true);
+      }, 1100);
+    },
+    forgot() {
+      UI.sheet('<div id="fg-body"><p class="muted sp-b">Ingresá tu email y te enviamos los pasos para crear una contraseña nueva.</p>' + '<div class="field" id="f-fg-email"><label for="fg-email">Email</label><div class="inwrap"><input id="fg-email" type="email" placeholder="nombre@mail.com" autocomplete="off"></div><p class="ferr" id="e-fg-email" hidden></p></div>' + UI.btn('Enviarme los pasos', 'sendReset', { id: 'btn-reset' }) + '</div>', { title: 'Recuperar contraseña' });
+    },
+    sendReset(el) {
+      const e = $('#fg-email').value.trim();
+      clearErrs();
+      if (!/^\S+@\S+\.\S+$/.test(e)) { fieldErr('fg-email', 'Revisá tu email. Tiene que tener un formato como nombre@mail.com.'); return; }
+      btnLoading(el, true);
+      later(() => { $('#fg-body').innerHTML = '<div class="center"><div class="check-big"><span>' + ic('check', 44) + '</span></div><h2 class="h2">Revisá tu email</h2><p class="lead">Te enviamos los pasos a <strong>' + esc(e) + '</strong>. Si no lo ves en unos minutos, mirá en spam.</p>' + UI.btn('Volver a iniciar sesión', 'closeSheet') + '</div>'; }, 900);
     },
     logout() { UI.modal({ title: '¿Querés cerrar sesión?', body: 'Para ver tus pedidos de nuevo, vas a tener que ingresar otra vez.', icon: 'out', actions: [{ label: 'Cerrar sesión', act: 'doLogout' }, { label: 'Quedarme', act: 'closeModal', kind: 'secondary' }] }); },
-    doLogout() { S().loggedIn = false; S().nav = [{ name: 'home', params: {} }]; C.save(); render(); },
+    doLogout() { S().loggedIn = false; S().user = null; S().nav = [{ name: 'welcome', params: {} }]; C.logEvent('logout', ''); C.save(); R.dir = 'fade'; render(); },
 
     /* ----- Producto y carrito ----- */
     openProduct(el) { R.go('product', { id: el.dataset.pid || el.dataset.id }); },
@@ -384,7 +434,7 @@
       if (a === 'next' && o) { C.advanceOrder(o); rerender(); }
       if (a === 'jump' && o && d.to) { C.advanceOrder(o, d.to); rerender(); }
       if (a === 'ready') this.createReady();
-      if (a === 'reset') { if (confirm('¿Reiniciar el prototipo? Se borran pedidos, carrito y registro.')) C.resetAll(); }
+      if (a === 'reset') { if (this.armed) C.resetAll(); else { this.armed = true; setTimeout(() => { this.armed = false; this.refresh(); }, 4000); } }
       if (a === 'go') { S().nav = [{ name: d.to, params: {} }]; R.dir = 'fade'; render(); }
       if (a === 'start') this.taskStart(d.id);
       if (a === 'done') this.taskEnd(d.id, 'ok');
@@ -426,7 +476,7 @@
         '<section><h4>Avance automático</h4><p class="fst muted">El pedido avanza solo cada ~7 s hasta “Listo para retirar”. Apagalo si querés controlarlo vos.</p><div class="fbtns"><button data-f="auto">' + (S().auto === false ? 'Apagado · Encender' : 'Encendido · Apagar') + '</button></div></section>' +
         '<section><h4>Ir a</h4><div class="fbtns"><button data-f="go" data-to="home">Inicio</button><button data-f="go" data-to="orders">Pedidos</button><button data-f="go" data-to="lockerTab">Locker</button></div></section>' +
         '<section><h4>Tareas</h4>' + tasks + '</section>' +
-        '<section><h4>Registro</h4><ul class="flog">' + (logs || '<li class="muted">Sin eventos todavía.</li>') + '</ul><div class="fbtns"><button data-f="copy">Copiar resultados</button><button class="danger" data-f="reset">Reiniciar prototipo</button></div></section>';
+        '<section><h4>Registro</h4><ul class="flog">' + (logs || '<li class="muted">Sin eventos todavía.</li>') + '</ul><div class="fbtns"><button data-f="copy">Copiar resultados</button><button class="danger" data-f="reset">' + (this.armed ? "¿Seguro? Tocá de nuevo" : "Reiniciar prototipo") + '</button></div></section>';
     }
   };
   window.FAC = FAC;
@@ -445,7 +495,14 @@
 
   /* ---------- Boot ---------- */
   window.APP = { render, rerender, refreshBadges };
+  function fitPhone() {
+    const ph = $('#phone'); if (!ph) return;
+    const small = window.matchMedia('(max-width: 600px)').matches;
+    ph.style.zoom = small ? 1 : Math.min(1, (window.innerHeight - 24) / 896);
+  }
+  window.addEventListener('resize', fitPhone);
   document.addEventListener('DOMContentLoaded', () => {
+    fitPhone();
     $('#fac-toggle').addEventListener('click', () => FAC.setOpen(!FAC.open));
     FAC.init();
     render();
