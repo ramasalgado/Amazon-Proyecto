@@ -10,7 +10,7 @@
   const L = { // estado de UI efímero (no se persiste)
     q: '', cat: null,
     ls: { q: '', type: 'all', quick: null, view: 'list', maxKm: null, onlyAvail: false, late: false, loading: false, sel: null, mode: 'select' },
-    code: '', codeErr: '', survey: { score: null, text: '' }, tab: 'transit', open: {}
+    code: '', codeErr: '', survey: { score: null, text: '' }, tab: 'transit', open: {}, pdp: {}
   };
   window.LSTATE = L;
 
@@ -81,14 +81,14 @@
   function homeOrder(o) {
     const l = o.lockerId ? locker(o.lockerId) : null;
     const t = homeOrderTitle(o), sub = homeOrderSub(o, l);
-    return '<button type="button" class="ocard ' + (o.status === 'ready' ? 'hl' : '') + '" data-act="openOrder" data-id="' + o.id + '">' + UI.art(product(o.items[0].pid), 56) +
+    return '<button type="button" class="ocard ' + (o.status === 'ready' ? 'hl' : '') + '" data-act="openOrder" data-id="' + o.id + '">' + UI.art(product(o.items[0].pid), 56, o.items[0].color) +
       '<span class="ob"><strong>' + esc(t) + '</strong><span>' + esc(sub) + '</span></span>' + ic('chevR', 22) + '</button>';
   }
   function homeOrderTitle(o) {
     return { confirmed: 'Pedido confirmado', preparing: 'Estamos preparando tu pedido', transit: 'Tu pedido está en camino', atLocker: 'Tu pedido llegó al locker', ready: 'Tu pedido está listo', pickedUp: 'Pedido retirado', delivered: 'Pedido entregado' }[o.status];
   }
   function homeOrderSub(o, l) {
-    if (o.status === 'ready') return 'Retiralo en ' + l.name + ' antes del ' + C.shortDate(C.deadline(o));
+    if (o.status === 'ready') return 'Tenés 72 h para retirarlo en ' + l.name + ' · quedan ' + C.remaining(o).text;
     if (o.status === 'pickedUp') return itemsTitle(o);
     if (o.delivery === 'home') return itemsTitle(o) + ' · a domicilio';
     return (o.status === 'transit' ? 'Llega al locker el ' + C.dayLabel(C.etaTransit(o)) + ', 14:00 – 16:00' : itemsTitle(o) + ' · ' + l.name);
@@ -127,10 +127,11 @@
      ============================================================ */
   SC.product = {
     render(p) {
-      const pr = product(p.id);
-      const body = '<div class="pdp-art">' + UI.art(pr) + '</div><div class="pad-x"><p class="muted">' + esc(pr.cat) + '</p><h1 class="pdp-t">' + esc(pr.title) + '</h1>' +
+      const pr = product(p.id), cols = C.colorList(pr), cn = L.pdp[pr.id] || (cols[0] && cols[0].n);
+      const sw = cols.length ? '<div class="swatch-h">Color: <b>' + esc(cn) + '</b></div><div class="swatches" role="radiogroup" aria-label="Color">' + cols.map(c => '<button type="button" role="radio" aria-checked="' + (c.n === cn) + '" aria-label="' + esc(c.n) + '" class="swatch' + (c.n === cn ? ' on' : '') + '" style="--sw:' + c.h + '" data-act="pickColor" data-id="' + pr.id + '" data-c="' + esc(c.n) + '"></button>').join('') + '</div>' : '';
+      const body = '<div class="pdp-art">' + UI.art(pr, 0, cn) + '</div><div class="pad-x"><p class="muted">' + esc(pr.cat) + '</p><h1 class="pdp-t">' + esc(pr.title) + '</h1>' +
         '<div class="pr-r">' + UI.stars(pr.rating) + '<em>' + String(pr.rating).replace('.', ',') + ' (' + pr.reviews.toLocaleString('es-AR') + ' opiniones)</em></div>' +
-        '<div class="pdp-price">' + money(pr.price) + '</div><p class="free big">Envío GRATIS</p><p class="muted">Llega en 2 a 4 días. Elegís cómo recibirlo cuando pagás.</p>' +
+        '<div class="pdp-price">' + money(pr.price) + '</div>' + sw + '<p class="free big">Envío GRATIS</p><p class="muted">Llega en 2 a 4 días. Elegís cómo recibirlo cuando pagás.</p>' +
         '<h3 class="sub-h">Sobre este producto</h3><ul class="bul">' + pr.bullets.map(b => '<li>' + esc(b) + '</li>').join('') + '</ul></div><div class="sp-lg"></div>';
       const footer = UI.btn('Agregar al carrito', 'addToCart', { data: { id: pr.id } }) + UI.btn('Comprar ahora', 'buyNow', { kind: 'secondary', data: { id: pr.id } });
       return UI.page({ header: UI.hdr({ right: [UI.cartBtn()] }), body, footer });
@@ -149,7 +150,7 @@
       } else {
         body = '<div class="pad-x"><h1 class="h1">Tu carrito (' + n + ')</h1>' + items.map(i => {
           const p = product(i.pid);
-          return '<div class="crow">' + UI.art(p, 76) + '<div class="cr-b"><strong>' + esc(p.title) + '</strong><span class="price">' + money(p.price) + '</span><span class="free">Envío GRATIS</span>' +
+          return '<div class="crow">' + UI.art(p, 76, i.color) + '<div class="cr-b"><strong>' + esc(p.title) + '</strong>' + (i.color ? '<span class="muted">Color: ' + esc(i.color) + '</span>' : '') + '<span class="price">' + money(p.price) + '</span><span class="free">Envío GRATIS</span>' +
             '<div class="stepper"><button type="button" data-act="qty" data-id="' + p.id + '" data-d="-1" aria-label="Quitar uno"' + (i.qty <= 1 ? ' disabled' : '') + '>' + ic('minus', 16) + '</button><output>' + i.qty + '</output><button type="button" data-act="qty" data-id="' + p.id + '" data-d="1" aria-label="Agregar uno"' + (i.qty >= 5 ? ' disabled' : '') + '>' + ic('plus', 16) + '</button>' +
             '<button type="button" class="trash" data-act="removeItem" data-id="' + p.id + '" aria-label="Eliminar ' + esc(p.short) + '">' + ic('trash', 20) + '</button></div></div></div>';
         }).join('') + '<div class="sum"><span>Subtotal (' + n + ')</span><strong>' + money(cartTotal()) + '</strong></div><button type="button" class="link" data-act="tab" data-to="home">Seguir comprando</button></div>';
@@ -259,10 +260,10 @@
         '<ul class="meta"><li>' + ic('user', 18) + 'A ' + km(l.km) + ' de tu ubicación</li><li>' + ic('clock', 18) + esc(l.hours) + '</li></ul>' +
         (full ? UI.callout('err', 'info', 'No disponible', 'Por ahora no tiene espacios libres. Elegí otro locker cercano.') : UI.callout('ok', 'check', 'Disponible', 'Hay compartimentos disponibles. ' + l.sizes + '.')) +
         '<button type="button" class="lrow bordered" data-act="lockerWhere" data-id="' + l.id + '"><span class="lr-ic">' + ic('pin', 22) + '</span><span class="lr-b"><strong>Ubicación</strong><span>' + esc(l.where) + '</span></span>' + ic('chevR', 20, 'lchev') + '</button>' +
-        '<button type="button" class="link more" data-act="toggleMore" aria-expanded="' + open + '">Ver más información ' + ic(open ? 'chevU' : 'chevD', 14) + '</button>' +
-        (open ? '<div class="moreinfo"><p><strong>Tiempo para retirar.</strong> Tenés 3 días desde que tu pedido está listo.</p><p><strong>Cómo se abre.</strong> Escaneás el QR o ingresás tu código de 6 dígitos en la pantalla del locker.</p><p><strong>Tamaños.</strong> ' + esc(l.sizes) + '.</p><p><strong>Accesibilidad.</strong> Pantalla a 1,20 m de altura y compartimentos a nivel del piso.</p></div>' : '') + '</div><div class="sp-lg"></div>';
+        '<a class="link maps" href="' + esc(C.mapsUrl(l)) + '" target="_blank" rel="noopener noreferrer" data-act="openMaps">' + ic('nav', 16) + 'Ver en Google Maps</a><button type="button" class="link more" data-act="toggleMore" aria-expanded="' + open + '">Ver más información ' + ic(open ? 'chevU' : 'chevD', 14) + '</button>' +
+        (open ? '<div class="moreinfo"><p><strong>Tiempo para retirar.</strong> Tenés 72 horas desde que tu pedido está listo.</p><p><strong>Cómo se abre.</strong> Escaneás el QR o ingresás tu código de 6 dígitos en la pantalla del locker.</p><p><strong>Tamaños.</strong> ' + esc(l.sizes) + '.</p><p><strong>Accesibilidad.</strong> Pantalla a 1,20 m de altura y compartimentos a nivel del piso.</p></div>' : '') + '</div><div class="sp-lg"></div>';
       let footer;
-      if (p.mode === 'browse') footer = UI.btn('Cómo llegar', 'lockerWhere', { data: { id: l.id }, icon: 'nav' });
+      if (p.mode === 'browse') footer = UI.link('Cómo llegar en Google Maps', C.mapsUrl(l), { icon: 'nav', act: 'openMaps' });
       else footer = UI.btn('Seleccionar este locker', 'selectLocker', { data: { id: l.id }, disabled: full, arrow: !full });
       return UI.page({ header: UI.hdr({ title: 'Detalle del locker', right }), body, footer });
     }
@@ -290,12 +291,12 @@
       const c = S().checkout, card = D.cards.find(x => x.id === c.card);
       if (!S().cart.length) return SC.cart.render();
       const l = c.delivery === 'locker' && c.lockerId ? locker(c.lockerId) : null;
-      const items = S().cart.map(i => { const p = product(i.pid); return '<div class="rv-item">' + UI.art(p, 64) + '<div><strong>' + esc(p.short) + '</strong><span class="muted">Cantidad: ' + i.qty + '</span><span class="price">' + money(p.price * i.qty) + '</span></div></div>'; }).join('');
+      const items = S().cart.map(i => { const p = product(i.pid); return '<div class="rv-item">' + UI.art(p, 64, i.color) + '<div><strong>' + esc(p.short) + '</strong><span class="muted">' + (i.color ? 'Color: ' + esc(i.color) + ' · ' : '') + 'Cantidad: ' + i.qty + '</span><span class="price">' + money(p.price * i.qty) + '</span></div></div>'; }).join('');
       const ship = l ? '<div class="rv-ship">' + UI.lockerThumb(l) + '<div><strong>Amazon Hub Locker ' + esc(l.name) + '</strong><span class="muted">' + esc(l.address) + '</span></div></div>' : '<div class="rv-ship"><span class="lthumb icon">' + ic('house', 26) + '</span><div><strong>A domicilio</strong><span class="muted">' + esc(c.address) + '</span></div></div>';
       const body = '<div class="pad-x"><h1 class="h1">Revisar pedido</h1>' + items +
         '<div class="rv-h"><h3>Envío a</h3><button type="button" class="link" data-act="toDelivery">' + (l ? 'Cambiar locker' : 'Cambiar') + '</button></div>' + ship +
         '<div class="rv-h"><h3>Pago</h3><button type="button" class="link" data-act="choosePayment">Cambiar</button></div><p class="rv-pay">' + ic('card', 20) + '•••• ' + card.last4 + ' (' + card.brand + ')</p>' +
-        (l ? UI.callout('info', 'clock', 'Tenés 3 días para retirarlo.', 'Los días empiezan a contar cuando tu pedido esté listo en el locker.') : '') +
+        (l ? UI.callout('info', 'clock', 'Tenés 72 h para retirarlo.', 'Las 72 horas empiezan a contar cuando tu pedido esté listo en el locker.') : '') +
         '<div class="sum"><span>Total</span><strong>' + money(cartTotal()) + '</strong></div></div>';
       return UI.page({ header: UI.hdr({}), body, footer: UI.btn('Realizar compra', 'placeOrder', { id: 'btn-place' }) });
     }
@@ -308,7 +309,7 @@
     render(p) {
       const o = S().orders.find(x => x.id === p.id), l = o.lockerId ? locker(o.lockerId) : null;
       const body = '<div class="pad-x center done"><div class="check-big"><span>' + ic('check', 44) + '</span></div><h1 class="h1c">¡Compra confirmada!</h1>' +
-        (l ? '<p class="lead">Tu pedido será entregado en el Amazon Hub Locker de ' + esc(l.name) + '.</p><div class="lcard flat">' + UI.lockerThumb(l) + '<span class="lbody"><strong>' + esc(l.name) + '</strong><span class="lsub">' + esc(l.address) + '</span></span></div>' + UI.callout('info', 'bell', 'Te avisamos cuando esté disponible.', 'Después, tenés 3 días para retirarlo.') :
+        (l ? '<p class="lead">Tu pedido será entregado en el Amazon Hub Locker de ' + esc(l.name) + '.</p><div class="lcard flat">' + UI.lockerThumb(l) + '<span class="lbody"><strong>' + esc(l.name) + '</strong><span class="lsub">' + esc(l.address) + '</span></span></div>' + UI.callout('info', 'bell', 'Te avisamos cuando esté disponible.', 'Después, tenés 72 h para retirarlo.') :
           '<p class="lead">Te enviamos tu pedido a ' + esc(o.address) + '. Te avisamos cuando salga.</p>') +
         '<p class="muted">Pedido Nº ' + esc(o.id) + '</p></div>';
       const header = '<header class="hdr"><div class="hdr-row"><span class="hbtn ghost"></span><span class="hlogo">' + C.LOGO + '</span><div class="hright"><button type="button" class="hbtn" data-act="tab" data-to="home" aria-label="Cerrar">' + ic('close', 24) + '</button></div></div></header>';
@@ -327,13 +328,13 @@
   }
   function orderCard(o) {
     const l = o.lockerId ? locker(o.lockerId) : null;
-    const sub = o.cancelled ? 'Cancelaste este pedido' : o.status === 'pickedUp' ? 'Retirado el ' + C.dayLabel(o.times.pickedUp) : o.status === 'delivered' ? 'Entregado el ' + C.dayLabel(o.times.delivered) : o.status === 'ready' ? 'Retiralo antes del ' + C.shortDate(C.deadline(o)) : o.status === 'transit' ? 'Entrega estimada: ' + C.dayLabel(C.etaTransit(o)) : 'Pedido del ' + C.dayLabel(o.createdAt);
+    const sub = o.cancelled ? 'Cancelaste este pedido' : o.status === 'pickedUp' ? 'Retirado el ' + C.dayLabel(o.times.pickedUp) : o.status === 'delivered' ? 'Entregado el ' + C.dayLabel(o.times.delivered) : o.status === 'ready' ? 'Tenés 72 h · quedan ' + C.remaining(o).text : o.status === 'transit' ? 'Entrega estimada: ' + C.dayLabel(C.etaTransit(o)) : 'Pedido del ' + C.dayLabel(o.createdAt);
     const rows = [];
     if (!o.cancelled) rows.push(['Ver seguimiento', 'openOrder', 'locker']);
     rows.push(['Detalles del pedido', 'orderDetails', 'info']);
     if (!o.cancelled && !C.isDone(o)) rows.push(['Cancelar pedido', 'cancelOrder', 'close']);
     if (C.isDone(o)) rows.push(['Volver a comprar', 'openProduct', 'cart']);
-    return '<div class="ocard2"><button type="button" class="oc-top" data-act="openOrder" data-id="' + o.id + '"' + (o.cancelled ? ' data-details="1"' : '') + '>' + UI.art(product(o.items[0].pid), 64) + '<span class="ob"><strong>' + esc(itemsTitle(o)) + '</strong><span class="price">' + money(o.total) + '</span><span>' + esc(sub) + '</span>' + orderStatusPill(o) + '</span>' + ic('chevR', 20, 'lchev') + '</button>' +
+    return '<div class="ocard2"><button type="button" class="oc-top" data-act="openOrder" data-id="' + o.id + '"' + (o.cancelled ? ' data-details="1"' : '') + '>' + UI.art(product(o.items[0].pid), 64, o.items[0].color) + '<span class="ob"><strong>' + esc(itemsTitle(o)) + '</strong><span class="price">' + money(o.total) + '</span><span>' + esc(sub) + '</span>' + orderStatusPill(o) + '</span>' + ic('chevR', 20, 'lchev') + '</button>' +
       '<div class="oc-rows">' + rows.map(r => '<button type="button" class="oc-row" data-act="' + r[1] + '" data-id="' + o.id + '"' + (r[1] === 'openProduct' ? ' data-pid="' + o.items[0].pid + '"' : '') + '>' + ic(r[2], 18) + r[0] + ic('chevR', 16, 'lchev') + '</button>').join('') + '</div></div>';
   }
   SC.orders = {
@@ -369,14 +370,14 @@
   }
   function trackHero(o) {
     const l = o.lockerId ? locker(o.lockerId) : null;
-    const dl = C.shortDate(C.deadline(o));
+    const dl = C.deadlineLabel(o);
     if (o.cancelled) return '<div class="hero-card err">' + '<div class="hc-ic">' + ic('close', 34) + '</div><h2>Pedido cancelado</h2><p>No te cobramos nada por este pedido.</p></div>';
     switch (o.status) {
       case 'confirmed': return '<div class="hero-card ok"><div class="hc-ic">' + ic('check', 34) + '</div><h2>Pedido confirmado</h2><p>Estamos por empezar a prepararlo. Te mantenemos al tanto.</p></div>';
       case 'preparing': return '<div class="hero-card info"><div class="hc-ic">' + ic('box', 34) + '</div><h2>Estamos preparando tu pedido</h2><p>En breve sale hacia ' + (l ? 'el locker de ' + esc(l.name) : 'tu domicilio') + '.</p></div>';
       case 'transit': return '<div class="hero-card info"><div class="hc-ic big">' + ic('truck', 54) + '</div><div class="prog"><i class="on"></i><b class="on"></b><i class="on"></i><b></b><i></i></div><h2>Tu pedido está en camino</h2><p>' + (l ? 'Llega al locker el ' + C.dayLabel(C.etaTransit(o)) + ', 14:00 – 16:00' : 'Llega el ' + C.dayLabel(C.etaTransit(o)) + ', 12:00 – 18:00') + '</p>' + UI.btn('Ver más detalles', 'orderDetails', { kind: 'secondary', data: { id: o.id } }) + '</div>';
       case 'atLocker': return '<div class="hero-card info"><img class="hc-img" src="assets/locker-detail.jpg" alt=""><h2>Tu pedido llegó a Amazon Hub Locker</h2><p>' + esc(l.name) + ' · ' + esc(l.address) + '. Lo estamos dejando listo para que lo retires.</p>' + UI.btn('Ver detalles', 'lockerFromOrder', { kind: 'secondary', data: { id: o.id } }) + '</div>';
-      case 'ready': return '<div class="hero-card ok"><img class="hc-box" src="assets/box.jpg" alt=""><h2>Tu pedido está listo.</h2><p>Podés retirarlo en el Amazon Hub Locker de ' + esc(l.name) + '.</p>' + UI.btn('Ver código de retiro', 'showCode', { data: { id: o.id } }) + '<p class="hc-note">' + ic('clock', 16) + 'Retiralo antes del ' + dl + '</p></div>';
+      case 'ready': return '<div class="hero-card ok"><img class="hc-box" src="assets/box.jpg" alt=""><h2>Tu pedido está listo.</h2><p>Podés retirarlo en el Amazon Hub Locker de ' + esc(l.name) + '.</p>' + UI.btn('Ver código de retiro', 'showCode', { data: { id: o.id } }) + '<p class="hc-note">' + ic('clock', 16) + 'Tenés 72 h para retirarlo · hasta el ' + dl + '</p></div>';
       case 'pickedUp': return '<div class="hero-card ok"><div class="hc-ic">' + ic('check', 34) + '</div><h2>Retiraste tu pedido</h2><p>' + (o.surveyDone ? 'Gracias por usar Amazon Hub Locker.' : 'Contanos cómo fue tu experiencia en 10 segundos.') + '</p>' + (o.surveyDone ? '' : UI.btn('Contanos cómo fue', 'openSurvey', { kind: 'secondary', data: { id: o.id } })) + '</div>';
       case 'delivered': return '<div class="hero-card ok"><div class="hc-ic">' + ic('check', 34) + '</div><h2>Entregamos tu pedido</h2><p>Llegó a ' + esc(o.address) + '.</p></div>';
     }
@@ -387,7 +388,7 @@
       const o = S().orders.find(x => x.id === p.id);
       if (o.status === 'ready' && !o._seen) { o._seen = true; }
       const l = o.lockerId ? locker(o.lockerId) : null;
-      const body = '<div class="pad-x"><div class="track-prod">' + UI.art(product(o.items[0].pid), 56) + '<div><strong>' + esc(itemsTitle(o)) + '</strong><span class="price">' + money(o.total) + '</span></div></div>' +
+      const body = '<div class="pad-x"><div class="track-prod">' + UI.art(product(o.items[0].pid), 56, o.items[0].color) + '<div><strong>' + esc(itemsTitle(o)) + '</strong><span class="price">' + money(o.total) + '</span></div></div>' +
         trackHero(o) + '<h3 class="sub-h">Estado del pedido</h3>' + timeline(o) +
         (l ? '<h3 class="sub-h">Retiro</h3><button type="button" class="lcard flat" data-act="lockerFromOrder" data-id="' + o.id + '">' + UI.lockerThumb(l) + '<span class="lbody"><strong>' + esc(lockerName(l)) + '</strong><span class="lsub">' + esc(l.address) + '</span><span class="lsub">' + esc(l.hours) + '</span></span>' + ic('chevR', 22, 'lchev') + '</button>' : '') +
         '<button type="button" class="link spaced" data-act="orderDetails" data-id="' + o.id + '">Detalles del pedido</button><button type="button" class="link spaced" data-act="support">¿Necesitás ayuda con este pedido?</button></div><div class="sp-lg"></div>';
@@ -420,6 +421,10 @@
   /* ============================================================
      CÓDIGO DE RETIRO
      ============================================================ */
+  function countdown(o) {
+    const r = C.remaining(o);
+    return '<div class="cd" data-cd-order="' + o.id + '"><div class="cd-t"><span>Tiempo para retirar</span><b data-cd>' + r.text + '</b></div><div class="cd-bar"><i data-cdbar style="width:' + r.pct.toFixed(1) + '%"></i></div></div>';
+  }
   SC.pickupCode = {
     render(p) {
       const o = S().orders.find(x => x.id === p.id), l = locker(o.lockerId);
@@ -428,7 +433,7 @@
       }
       const body = '<div class="pad-x center"><div class="qr-card">' + C.qr(o.code + o.id, 190) + '<div class="qr-code"><span>Código numérico</span><strong>' + o.code.slice(0, 3) + ' ' + o.code.slice(3) + '</strong></div><button type="button" class="link" data-act="copyCode" data-code="' + o.code + '">' + ic('copy', 16) + 'Copiar código</button></div>' +
         '<p class="lead">Escaneá el código en el locker o ingresá el número en la pantalla.</p>' +
-        UI.callout('warn', 'clock', 'Retiralo antes del ' + C.shortDate(C.deadline(o)), l.name + ' · ' + l.hours) + '</div>';
+        countdown(o) + UI.callout('warn', 'clock', 'Tenés 72 h para retirarlo', 'Hasta el ' + C.deadlineLabel(o) + ' · ' + l.name) + '</div>';
       const footer = UI.btn('Ver instrucciones', 'instructions', { data: { id: o.id } }) + UI.btn('Ya estoy en el locker', 'toScan', { kind: 'secondary', data: { id: o.id } });
       return UI.page({ header: UI.hdr({ title: 'Código de retiro' }), body, footer });
     }
@@ -437,7 +442,7 @@
     render(p) {
       const l = locker(p.id);
       const body = '<div class="pad-x"><div class="lcard flat">' + UI.lockerThumb(l) + '<span class="lbody"><strong>Amazon Hub Locker<br>' + esc(l.name) + '</strong><span class="lsub">' + esc(l.address) + '</span><span class="lsub">A ' + km(l.km) + ' · ' + esc(l.where) + '</span></span></div>' +
-        UI.btn('Cómo llegar', 'directions', { kind: 'dark', data: { id: l.id }, icon: 'nav' }) + '</div>' +
+        UI.link('Cómo llegar en Google Maps', C.mapsUrl(l), { kind: 'dark', icon: 'nav', act: 'openMaps' }) + '</div>' +
         '<div class="map static"><svg class="map-bg" viewBox="0 0 360 340" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="360" height="340" fill="#EDEFF2"/><rect x="236" y="38" width="86" height="64" rx="14" fill="#D5EBD2"/><g stroke="#fff" stroke-width="9" fill="none"><path d="M-10 78H380M-10 168H380M-10 262H380M70 -10V350M170 -10V350M262 -10V350"/></g><path d="M166 180 L166 78 L262 78" stroke="#3B82F6" stroke-width="5" stroke-dasharray="2 9" stroke-linecap="round" fill="none"/></svg><span class="me" style="left:46%;top:52%"><i></i></span><span class="pin on" style="left:73%;top:23%"><svg viewBox="0 0 40 50" width="44" height="54"><path d="M20 48C8 36 3 28 3 19a17 17 0 0134 0c0 9-5 17-17 29z"/></svg><span>' + ic('locker', 18) + '</span></span></div>';
       return UI.page({ header: UI.hdr({ title: 'Ubicación del locker' }), body, footer: (p.orderId && S().orders.find(x => x.id === p.orderId).status === 'ready') ? UI.btn('Ya estoy en el locker', 'toScan', { data: { id: p.orderId } }) : '', cls: 'loc' });
     }
@@ -548,7 +553,7 @@
     }
   };
   const FAQ = [
-    ['¿Cuánto tiempo tengo para retirar mi pedido?', 'Tenés 3 días desde que te avisamos que está listo. Te recordamos antes de que se termine el plazo.'],
+    ['¿Cuánto tiempo tengo para retirar mi pedido?', 'Tenés 72 horas desde que te avisamos que está listo. Te recordamos antes de que se termine el plazo.'],
     ['¿Qué hago si el locker no abre?', 'Revisá que el código tenga 6 dígitos e intentá de nuevo. Si sigue sin abrir, tocá “Contactar soporte” desde la pantalla del locker y te ayudamos al instante.'],
     ['¿Puedo cambiar el locker después de comprar?', 'Sí, mientras el pedido no haya salido del depósito. Escribinos desde “Mis pedidos”.'],
     ['¿Tiene costo usar Amazon Hub Locker?', 'No. Elegirlo como método de entrega no tiene costo adicional.'],

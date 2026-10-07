@@ -38,7 +38,7 @@
 
   function refreshBadges() {
     const n = UI.cartCount(), u = UI.unread();
-    $$('[data-badge="cart"]').forEach(b => { b.textContent = n; b.hidden = !n; });
+    $$('[data-badge="cart"]').forEach(b => { const grew = Number(b.textContent) < n && !b.hidden; b.textContent = n; b.hidden = !n; if (grew) { b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump'); } });
     $$('[data-badge="bell"]').forEach(b => { b.hidden = !u; });
   }
 
@@ -51,9 +51,11 @@
       if (p.phase !== 'ok') later(() => R.replace('validate', { id: p.id, phase: 'ok' }), 1500);
       else later(() => R.replace('open', { id: p.id }), 1700);
     }
+    if (name === 'completed' || name === 'retrieved') later(() => UI.confetti(), 250);
     if (name === 'retrieved') later(() => R.replace('completed', { id: p.id }), 3200);
     if (name === 'manualCode') { const i = $('#codein'); if (i) i.focus(); }
     if (name === 'purchaseDone') {
+      later(() => UI.confetti(), 300);
       const o = S().orders.find(x => x.id === p.id);
       if (o && !o.announced) { o.announced = true; later(() => C.notify({ type: 'confirmed', orderId: o.id, title: 'Tu pedido está confirmado', body: o.delivery === 'locker' ? '¡Listo! Estamos preparando tu pedido para enviarlo al Amazon Hub Locker de ' + locker(o.lockerId).name + '.' : '¡Listo! Estamos preparando tu pedido para enviarlo a tu domicilio.' }), 900); }
     }
@@ -82,6 +84,7 @@
     UI.toast(isNew ? '¡Listo, ' + acc.name + '! Tu cuenta está creada.' : 'Hola de nuevo, ' + acc.name + '.');
   }
   const orderOf = id => S().orders.find(o => o.id === id);
+  function pdpColor(id) { const p = product(id), c = C.colorList(p); return L.pdp[id] || (c[0] && c[0].n) || null; }
 
   /* ============================================================
      ACCIONES
@@ -156,12 +159,14 @@
     openProduct(el) { R.go('product', { id: el.dataset.pid || el.dataset.id }); },
     addToCart(el) {
       const id = el.dataset.id, it = S().cart.find(i => i.pid === id);
-      if (it) it.qty = Math.min(5, it.qty + 1); else S().cart.push({ pid: id, qty: 1 });
+      const col = pdpColor(id);
+      if (it) { it.qty = Math.min(5, it.qty + 1); it.color = col; } else S().cart.push({ pid: id, qty: 1, color: col });
       C.save(); C.logEvent('carrito', '+ ' + id); R.go('cart');
     },
     buyNow(el) {
       const id = el.dataset.id;
-      if (!S().cart.find(i => i.pid === id)) S().cart.push({ pid: id, qty: 1 });
+      const col = pdpColor(id), ex = S().cart.find(i => i.pid === id);
+      if (ex) ex.color = col; else S().cart.push({ pid: id, qty: 1, color: col });
       C.save(); R.go('checkout');
     },
     qty(el) {
@@ -174,6 +179,7 @@
       UI.toast('Quitaste “' + product(gone.pid).short + '”.', { action: { label: 'Deshacer', fn: () => { S().cart.splice(i, 0, gone); C.save(); rerender(); } } });
     },
     toCheckout() { R.go('checkout'); },
+    pickColor(el) { L.pdp[el.dataset.id] = el.dataset.c; rerender(); },
     toastAction() { const f = UI.toastFn; $('#toast').className = 'toast'; if (f) f(); },
 
     /* ----- Dirección / pago ----- */
@@ -245,7 +251,7 @@
       btnLoading(el, true);
       later(() => {
         const t = Date.now(), r = () => String(Math.floor(Math.random() * 9e6 + 1e6));
-        const o = { id: '114-' + r() + '-' + String(Math.floor(Math.random() * 9000 + 1000)), items: S().cart.map(i => ({ pid: i.pid, qty: i.qty })), total: H.cartTotal(), delivery: c.delivery === 'locker' ? 'locker' : 'home', lockerId: c.delivery === 'locker' ? c.lockerId : null, address: c.address, card: c.card, status: 'confirmed', createdAt: t, times: { confirmed: t }, code: window.PICKUP_CODE, compartment: 'B-14', cancelled: false, surveyDone: false };
+        const o = { id: '114-' + r() + '-' + String(Math.floor(Math.random() * 9000 + 1000)), items: S().cart.map(i => ({ pid: i.pid, qty: i.qty, color: i.color })), total: H.cartTotal(), delivery: c.delivery === 'locker' ? 'locker' : 'home', lockerId: c.delivery === 'locker' ? c.lockerId : null, address: c.address, card: c.card, status: 'confirmed', createdAt: t, times: { confirmed: t }, code: window.PICKUP_CODE, compartment: 'B-14', cancelled: false, surveyDone: false };
         S().orders.unshift(o); S().cart = []; c.delivery = 'home'; c.lockerId = null;
         L.tab = 'transit'; C.logEvent('compra', o.id + ' (' + o.delivery + ')');
         S().nav = [{ name: 'home', params: {} }, { name: 'purchaseDone', params: { id: o.id } }]; R.dir = 'fade'; C.save(); render();
@@ -285,11 +291,7 @@
       UI.sheet('<ol class="how">' + [['Andá al locker', l.name + ' · ' + l.address + '.'], ['Escaneá tu QR', 'Acercalo a la pantalla del locker o ingresá tu código de 6 dígitos.'], ['Retirá tu paquete', 'Se abre solo el compartimento que corresponde a tu pedido.'], ['Cerrá la puerta', 'Y listo. Te confirmamos el retiro en la app.']].map((s, i) => '<li><span>' + (i + 1) + '</span><div><strong>' + s[0] + '</strong><em>' + esc(s[1]) + '</em></div></li>').join('') + '</ol>' + UI.btn('Ir al locker', 'toLocation', { data: { id: o.id }, arrow: true }), { title: '¿Cómo retirar mi pedido?' });
     },
     toLocation(el) { const o = orderOf(el.dataset.id); UI.closeSheet(true); R.go('lockerLocation', { id: o.lockerId, orderId: o.id }); },
-    directions(el) {
-      const l = locker(el.dataset.id);
-      UI.sheet('<div class="route"><div class="rt-big">4 min</div><p>caminando · ' + km(l.km) + '</p></div><ol class="how"><li><span>1</span><div><strong>Salí por Av. Principal</strong><em>Seguí derecho 2 cuadras.</em></div></li><li><span>2</span><div><strong>Llegás a ' + esc(l.address) + '</strong><em>' + esc(l.where) + '.</em></div></li></ol>' + UI.btn('Abrir en Mapas', 'openMaps', { icon: 'nav' }), { title: 'Cómo llegar' });
-    },
-    openMaps() { UI.closeSheet(); UI.toast('Abriendo tu app de mapas…'); },
+    openMaps() { UI.toast('Abriendo Google Maps en otra pestaña…'); },
     toScan(el) { L.code = ''; L.codeErr = ''; R.go('scan', { id: el.dataset.id }); },
     doScan(el) {
       const o = orderOf(el.dataset.id); el.classList.add('hit');
@@ -448,7 +450,7 @@
       const t = Date.now(), id = '114-' + Math.floor(Math.random() * 9e6 + 1e6) + '-' + Math.floor(Math.random() * 9000 + 1000);
       const o = { id, items: [{ pid: 'p1', qty: 1 }], total: product('p1').price, delivery: 'locker', lockerId: 'ing', address: D.addresses[0].text, card: 'c1', status: 'ready', createdAt: t - 2 * C.DAY, times: { confirmed: t - 2 * C.DAY, preparing: t - 2 * C.DAY + 7200000, transit: t - C.DAY, atLocker: t - 7200000, ready: t }, code: window.PICKUP_CODE, compartment: 'B-14', cancelled: false, surveyDone: false, announced: true };
       S().orders.unshift(o); C.save(); C.logEvent('facilitador', 'pedido listo creado');
-      C.notify({ type: 'ready', orderId: o.id, title: 'Tu pedido está disponible', body: 'Ya podés retirarlo en el Amazon Hub Locker de Facultad de Ingeniería. Tenés tiempo hasta el ' + C.shortDate(C.deadline(o)) + '.' });
+      C.notify({ type: 'ready', orderId: o.id, title: 'Tu pedido está disponible', body: 'Ya podés retirarlo en el Amazon Hub Locker de Facultad de Ingeniería. Tenés 72 h para retirarlo (hasta el ' + C.deadlineLabel(o) + ').' });
       rerender();
     },
     taskStart(id) { S().tasks[id] = { start: Date.now(), status: 'en curso', logFrom: S().log.length }; C.logEvent('tarea', id + ' inicio'); },
@@ -481,6 +483,15 @@
   };
   window.FAC = FAC;
   setInterval(() => { $$('.run[data-t0]').forEach(e => { e.textContent = 'en curso · ' + Math.round((Date.now() - Number(e.dataset.t0)) / 1000) + ' s'; }); }, 1000);
+
+  /* ---------- Cuenta regresiva de las 72 h ---------- */
+  setInterval(() => {
+    $$('[data-cd-order]').forEach(box => {
+      const o = S().orders.find(x => x.id === box.dataset.cdOrder); if (!o) return;
+      const r = C.remaining(o); const t = $('[data-cd]', box), bar = $('[data-cdbar]', box);
+      if (t) t.textContent = r.text; if (bar) bar.style.width = r.pct.toFixed(1) + '%';
+    });
+  }, 15000);
 
   /* ---------- Avance automático del pedido ---------- */
   const AUTO_MS = 7000;

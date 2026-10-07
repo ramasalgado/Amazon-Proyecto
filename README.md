@@ -16,3 +16,9 @@ El pedido avanza solo cada ~7 s hasta "Listo para retirar" (se apaga desde el pa
 
 ## Datos
 Todo es ficticio. Código de retiro válido: `123456`. El QR es un patrón de prototipo, no un QR real.
+
+## Novedades
+- Plazo de **72 h** para retirar, con cuenta regresiva en el código de retiro y en el seguimiento.
+- "Cómo llegar" abre **Google Maps** (nueva pestaña) con el recorrido a pie hasta el locker.
+- Productos con renders más realistas y **selector de color**.
+- Animaciones: entrada escalonada de listas, confeti al confirmar compra y retiro, check animado, camión en tránsito, campana, QR con escaneo, pulso en el mapa. Respetan "reducir movimiento".

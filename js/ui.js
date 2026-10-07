@@ -21,6 +21,12 @@
       '<span class="btn-spin" aria-hidden="true"></span><span class="btn-label">' + lead + esc(label) + '</span>' + arrow + '</button>';
   }
 
+  function link(label, href, o) {
+    o = o || {};
+    return '<a class="btn btn-' + (o.kind || 'primary') + ' btn-block ' + (o.cls || '') + '" href="' + esc(href) + '" target="_blank" rel="noopener noreferrer"' + (o.act ? ' data-act="' + o.act + '"' : '') + UI_attrs(o.data) + '><span class="btn-label">' + (o.icon ? ic(o.icon, 20) : '') + esc(label) + '</span></a>';
+  }
+  const UI_attrs = d => Object.keys(d || {}).map(k => ' data-' + k + '="' + esc(d[k]) + '"').join('');
+
   /* ---------- Header ---------- */
   function cartCount() { return C.state.cart.reduce((a, i) => a + i.qty, 0); }
   function unread() { return C.state.notifications.filter(n => !n.read).length; }
@@ -147,11 +153,21 @@
   }
   function hidePush() { const p = $('#push'); if (p) p.className = 'push'; }
 
+  /* ---------- Confeti de celebración ---------- */
+  function confetti() {
+    const old = $('.confetti'); if (old) old.remove();
+    const box = document.createElement('div'); box.className = 'confetti'; box.setAttribute('aria-hidden', 'true');
+    const cols = ['#FF9900', '#131A22', '#16A34A', '#3B82F6', '#FFD08A'];
+    let h = '';
+    for (let i = 0; i < 34; i++) h += '<i style="left:' + (Math.random() * 100).toFixed(1) + '%;background:' + cols[i % cols.length] + ';animation-delay:' + (Math.random() * .5).toFixed(2) + 's;animation-duration:' + (1.8 + Math.random() * 1.4).toFixed(2) + 's;--r:' + Math.round(Math.random() * 720 - 360) + 'deg;--x:' + Math.round(Math.random() * 80 - 40) + 'px"></i>';
+    box.innerHTML = h; $('#app').appendChild(box); setTimeout(() => box.remove(), 3600);
+  }
+
   /* ---------- Switch ---------- */
   function sw(id, on, label, sub) {
     return '<div class="row-sw"><div><strong>' + esc(label) + '</strong>' + (sub ? '<span>' + esc(sub) + '</span>' : '') + '</div><button type="button" role="switch" aria-checked="' + !!on + '" class="sw' + (on ? ' on' : '') + '" data-act="toggleSw" data-id="' + id + '" aria-label="' + esc(label) + '"><i></i></button></div>';
   }
 
-  const UI = { art: C.art, btn, hdr, cartBtn, bellBtn, tabbar, page, callout, chip, stars, emptyState, lockerRow, lockerStatus, lockerThumb, sheet, closeSheet, modal, closeModal, toast, push, hidePush, sw, attrs, cartCount, unread, toastFn: null };
+  const UI = { art: C.art, link, confetti, btn, hdr, cartBtn, bellBtn, tabbar, page, callout, chip, stars, emptyState, lockerRow, lockerStatus, lockerThumb, sheet, closeSheet, modal, closeModal, toast, push, hidePush, sw, attrs, cartCount, unread, toastFn: null };
   window.UI = UI;
 })();

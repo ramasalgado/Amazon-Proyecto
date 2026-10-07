@@ -90,7 +90,14 @@
   const isDone = o => o.status === 'pickedUp' || o.status === 'delivered';
   const statusIdx = o => seqFor(o).indexOf(o.status);
   const lastOrder = () => S.orders.filter(o => !o.cancelled).sort((a, b) => b.createdAt - a.createdAt)[0];
-  const deadline = o => (o.times.ready || Date.now()) + 3 * DAY;
+  const HOURS72 = 72 * 3600000;
+  const deadline = o => (o.times.ready || Date.now()) + HOURS72;
+  const deadlineLabel = o => dayLabel(deadline(o)) + ', ' + hhmm(deadline(o));
+  const remaining = o => {
+    const left = Math.max(0, deadline(o) - Date.now()), m = Math.floor(left / 60000);
+    return { text: Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0') + ' min', pct: Math.max(0, Math.min(100, left / HOURS72 * 100)) };
+  };
+  const mapsUrl = l => 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent('Amazon Hub Locker ' + l.name + ', ' + l.address + ', Buenos Aires, Argentina') + '&travelmode=walking';
   const etaTransit = o => (o.times.preparing || o.createdAt) + 2 * DAY;
 
   function notify(n) {
@@ -117,7 +124,7 @@
       notify({ type: 'transit', orderId: o.id, title: 'Tu pedido está en camino', body: 'Tu pedido ya fue despachado. Llega a tu domicilio entre las 12 h y las 18 h.' });
     }
     if (next === 'ready') {
-      notify({ type: 'ready', orderId: o.id, title: 'Tu pedido está disponible', body: 'Ya podés retirarlo en el Amazon Hub Locker de ' + l.name + '. Tenés tiempo hasta el ' + shortDate(deadline(o)) + '.' });
+      notify({ type: 'ready', orderId: o.id, title: 'Tu pedido está disponible', body: 'Ya podés retirarlo en el Amazon Hub Locker de ' + l.name + '. Tenés 72 h para retirarlo (hasta el ' + deadlineLabel(o) + ').' });
     }
     if (next === 'delivered') {
       notify({ type: 'info', orderId: o.id, title: 'Tu pedido fue entregado', body: 'Entregamos tu pedido en tu domicilio.' });
@@ -204,18 +211,65 @@
   }
   const LOGO = '<svg class="logo" viewBox="0 0 92 30" role="img" aria-label="amazon"><text x="1" y="19" font-family="Arial Rounded MT Bold, Trebuchet MS, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="-1.100" fill="currentColor">amazon</text><path d="M8 24.500c14 6 31 6 44-1.500" fill="none" stroke="#FF9900" stroke-width="2.600" stroke-linecap="round"/><path d="M51 20.500l3.800 1.200-1.800 3.500" fill="none" stroke="#FF9900" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-  /* ---------- Ilustraciones de producto (SVG simple) ---------- */
+  /* ---------- Ilustraciones de producto (renders con volumen, brillos y sombra) ---------- */
+  let uid = 0;
+  const hex2 = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const mixHex = (h, t, k) => '#' + hex2(h).map((v, i) => Math.round(v + (t[i] - v) * k).toString(16).padStart(2, '0')).join('');
+  const lighten = (h, k) => mixHex(h, [255, 255, 255], k), darken = (h, k) => mixHex(h, [0, 0, 0], k);
+  const G = u => '<defs><linearGradient id="b' + u + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--hi)"/><stop offset=".55" style="stop-color:var(--pc)"/><stop offset="1" style="stop-color:var(--lo)"/></linearGradient>' +
+    '<linearGradient id="d' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--hi)"/><stop offset="1" style="stop-color:var(--lo)"/></linearGradient>' +
+    '<radialGradient id="c' + u + '" cx=".32" cy=".25" r=".9"><stop offset="0" style="stop-color:var(--hi)"/><stop offset=".6" style="stop-color:var(--pc)"/><stop offset="1" style="stop-color:var(--lo)"/></radialGradient>' +
+    '<radialGradient id="s' + u + '"><stop offset="0" stop-color="#000" stop-opacity=".32"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient></defs>';
+  const SH = (u, rx) => '<ellipse cx="100" cy="177" rx="' + (rx || 62) + '" ry="8" fill="url(#s' + u + ')"/>';
   const ART = {
-    headphones: '<path d="M44 118V98a56 56 0 01112 0v20" fill="none" stroke="#1F2937" stroke-width="10" stroke-linecap="round"/><rect x="32" y="108" width="28" height="48" rx="12" fill="#131A22"/><rect x="140" y="108" width="28" height="48" rx="12" fill="#131A22"/><rect x="36" y="118" width="8" height="28" rx="4" fill="#FF9900"/><rect x="156" y="118" width="8" height="28" rx="4" fill="#FF9900"/>',
-    mouse: '<path d="M100 34c-26 0-42 18-42 44v36c0 30 18 52 42 52s42-22 42-52V78c0-26-16-44-42-44z" fill="#131A22"/><path d="M100 34v44M58 78h84" stroke="#374151" stroke-width="3" fill="none"/><rect x="94" y="52" width="12" height="22" rx="6" fill="#FF9900"/>',
-    backpack: '<rect x="52" y="48" width="96" height="124" rx="38" fill="#1F2937"/><path d="M78 48c0-14 6-22 22-22s22 8 22 22" fill="none" stroke="#131A22" stroke-width="8"/><rect x="72" y="104" width="56" height="44" rx="12" fill="#131A22"/><rect x="82" y="122" width="36" height="6" rx="3" fill="#FF9900"/><path d="M52 98q-14 6-14 30M148 98q14 6 14 30" stroke="#131A22" stroke-width="8" fill="none" stroke-linecap="round"/>',
-    hoodie: '<path d="M70 40l-38 22 10 36 18-8v78h80V90l18 8 10-36-38-22c-4 14-16 22-30 22S74 54 70 40z" fill="#3B4252"/><path d="M82 52c4 14 12 20 18 20s14-6 18-20" fill="none" stroke="#2A303C" stroke-width="6"/><path d="M92 74v26M108 74v26" stroke="#E5E7EB" stroke-width="3" stroke-linecap="round"/><rect x="78" y="128" width="44" height="28" rx="8" fill="#2A303C"/>',
-    powerbank: '<rect x="60" y="30" width="80" height="140" rx="18" fill="#131A22"/><rect x="74" y="46" width="52" height="8" rx="4" fill="#374151"/><circle cx="100" cy="102" r="14" fill="none" stroke="#FF9900" stroke-width="5"/><path d="M100 94v16M93 102h14" stroke="#FF9900" stroke-width="4" stroke-linecap="round"/><rect x="86" y="148" width="28" height="8" rx="4" fill="#374151"/>',
-    notebook: '<rect x="44" y="52" width="80" height="106" rx="8" fill="#FF9900" transform="rotate(-8 84 105)"/><rect x="70" y="40" width="80" height="106" rx="8" fill="#131A22" transform="rotate(6 110 93)"/><rect x="88" y="62" width="46" height="8" rx="4" fill="#FF9900" transform="rotate(6 110 93)"/><path d="M92 82h42M90 94h42M88 106h30" stroke="#4B5563" stroke-width="3" stroke-linecap="round" transform="rotate(6 110 93)"/>'
+    headphones: u => G(u) + SH(u) +
+      '<path d="M43 122C38 30 162 30 157 122" fill="none" stroke="url(#b' + u + ')" stroke-width="14" stroke-linecap="round"/><path d="M51 118C50 46 150 46 149 118" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="3"/>' +
+      '<path d="M63 62C85 46 115 46 137 62" fill="none" stroke="#000" stroke-opacity=".14" stroke-width="5" stroke-linecap="round"/>' +
+      '<rect x="31" y="104" width="13" height="30" rx="5" fill="#b9c0ca"/><rect x="156" y="104" width="13" height="30" rx="5" fill="#b9c0ca"/>' +
+      '<rect x="20" y="112" width="42" height="64" rx="21" fill="url(#c' + u + ')"/><rect x="138" y="112" width="42" height="64" rx="21" fill="url(#c' + u + ')"/>' +
+      '<ellipse cx="41" cy="144" rx="12" ry="22" fill="none" stroke="#FF9900" stroke-width="3"/><ellipse cx="159" cy="144" rx="12" ry="22" fill="none" stroke="#FF9900" stroke-width="3"/>' +
+      '<path d="M27 128q3-9 12-12" stroke="#fff" stroke-opacity=".45" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M145 128q3-9 12-12" stroke="#fff" stroke-opacity=".3" stroke-width="3" fill="none" stroke-linecap="round"/>',
+    mouse: u => G(u) + SH(u, 52) +
+      '<path d="M100 26C134 26 150 52 150 88v34c0 36-21 55-50 55s-50-19-50-55V88c0-36 16-62 50-62z" fill="url(#c' + u + ')"/>' +
+      '<path d="M100 28v58M52 88q48 14 96 0" stroke="#000" stroke-opacity=".28" stroke-width="2" fill="none"/>' +
+      '<path d="M62 70C66 46 80 34 100 33" stroke="#fff" stroke-opacity=".4" stroke-width="4" fill="none" stroke-linecap="round"/>' +
+      '<rect x="93" y="48" width="14" height="26" rx="7" fill="#11151a"/><rect x="97" y="52" width="6" height="10" rx="3" fill="#FF9900"/>' +
+      '<path d="M54 120q-2 30 14 44" stroke="#000" stroke-opacity=".18" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="100" cy="146" r="6" fill="#000" fill-opacity=".2"/>',
+    backpack: u => G(u) + SH(u, 58) +
+      '<path d="M82 46c0-16 6-22 18-22s18 6 18 22" fill="none" stroke="url(#d' + u + ')" stroke-width="7" stroke-linecap="round"/>' +
+      '<rect x="46" y="40" width="108" height="134" rx="38" fill="url(#c' + u + ')"/>' +
+      '<path d="M60 72q40-16 80 0" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="2.500" stroke-dasharray="1 5" stroke-linecap="round"/><rect x="96" y="62" width="9" height="14" rx="3" fill="#FF9900"/>' +
+      '<rect x="62" y="104" width="76" height="56" rx="18" fill="url(#d' + u + ')"/><path d="M70 118h60" stroke="#000" stroke-opacity=".3" stroke-width="2.500" stroke-dasharray="1 5" stroke-linecap="round"/><rect x="96" y="112" width="9" height="13" rx="3" fill="#FF9900"/>' +
+      '<path d="M48 110q-14 8-14 34q0 16 14 20M152 110q14 8 14 34q0 16-14 20" fill="none" stroke="url(#d' + u + ')" stroke-width="9" stroke-linecap="round"/>' +
+      '<path d="M56 62C58 50 66 44 76 43" stroke="#fff" stroke-opacity=".3" stroke-width="4" fill="none" stroke-linecap="round"/>',
+    hoodie: u => G(u) + SH(u, 66) +
+      '<path d="M70 40L36 58 20 120l26 8 10-28v76h88v-76l10 28 26-8-16-62-34-18C122 54 78 54 70 40z" fill="url(#c' + u + ')"/>' +
+      '<path d="M70 40C78 22 122 22 130 40 120 66 108 72 100 72S80 66 70 40z" fill="url(#d' + u + ')"/><path d="M82 42c6-10 30-10 36 0-4 14-12 20-18 20s-14-6-18-20z" fill="#000" fill-opacity=".38"/>' +
+      '<path d="M92 66v30M108 66v30" stroke="#e9ecef" stroke-width="3" stroke-linecap="round"/><circle cx="92" cy="98" r="3" fill="#cfd4da"/><circle cx="108" cy="98" r="3" fill="#cfd4da"/>' +
+      '<path d="M70 132h60l10 34H60z" fill="#000" fill-opacity=".16"/><path d="M70 132l-10 34M130 132l10 34" stroke="#000" stroke-opacity=".25" stroke-width="2"/>' +
+      '<rect x="56" y="166" width="88" height="10" rx="4" fill="#000" fill-opacity=".28"/><rect x="20" y="116" width="26" height="10" rx="4" fill="#000" fill-opacity=".25" transform="rotate(14 33 121)"/><rect x="154" y="116" width="26" height="10" rx="4" fill="#000" fill-opacity=".25" transform="rotate(-14 167 121)"/>' +
+      '<path d="M60 96q8 18 4 36M140 96q-8 18-4 36M90 110q-4 12 0 22" stroke="#000" stroke-opacity=".15" stroke-width="5" fill="none" stroke-linecap="round"/>',
+    powerbank: u => G(u) + SH(u, 50) +
+      '<rect x="60" y="24" width="82" height="150" rx="17" fill="#000" fill-opacity=".35" transform="translate(5 0)"/>' +
+      '<rect x="58" y="24" width="82" height="150" rx="17" fill="url(#c' + u + ')"/>' +
+      '<rect x="66" y="34" width="66" height="58" rx="10" fill="#0b0f14"/><path d="M70 40h40" stroke="#fff" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>' +
+      '<circle cx="78" cy="78" r="4" fill="#22c55e"/><circle cx="92" cy="78" r="4" fill="#22c55e"/><circle cx="106" cy="78" r="4" fill="#22c55e"/><circle cx="120" cy="78" r="4" fill="#4b5563"/>' +
+      '<text x="99" y="62" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#FF9900">10000 mAh</text>' +
+      '<rect x="80" y="154" width="38" height="9" rx="4.500" fill="#0b0f14"/><rect x="87" y="157" width="24" height="3" rx="1.500" fill="#4b5563"/>' +
+      '<path d="M64 100q-2 30 0 44" stroke="#fff" stroke-opacity=".25" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="72" y="110" width="52" height="3" rx="1.500" fill="#fff" fill-opacity=".22"/>',
+    notebook: u => '<defs><radialGradient id="s' + u + '"><stop offset="0" stop-color="#000" stop-opacity=".32"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>' +
+      '<linearGradient id="n1' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffae33"/><stop offset="1" stop-color="#e57f00"/></linearGradient><linearGradient id="n2' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a4656"/><stop offset="1" stop-color="#1c2430"/></linearGradient><linearGradient id="n3' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7aa6d8"/><stop offset="1" stop-color="#4f78b0"/></linearGradient></defs>' + SH(u, 66) +
+      '<g transform="rotate(-12 70 110)"><rect x="40" y="34" width="70" height="128" rx="6" fill="url(#n3' + u + ')"/><g fill="#d5dbe3">' + [0, 1, 2, 3, 4, 5, 6, 7].map(i => '<circle cx="42" cy="' + (46 + i * 15) + '" r="3.500"/>').join('') + '</g><rect x="56" y="58" width="42" height="26" rx="3" fill="#fff" fill-opacity=".9"/></g>' +
+      '<g transform="rotate(10 130 110)"><rect x="92" y="30" width="70" height="128" rx="6" fill="url(#n1' + u + ')"/><g fill="#e5e9ef">' + [0, 1, 2, 3, 4, 5, 6, 7].map(i => '<circle cx="94" cy="' + (42 + i * 15) + '" r="3.500"/>').join('') + '</g><rect x="108" y="54" width="42" height="26" rx="3" fill="#fff" fill-opacity=".92"/><path d="M114 62h30M114 70h22" stroke="#9aa3ae" stroke-width="2.500" stroke-linecap="round"/></g>' +
+      '<g><rect x="66" y="48" width="70" height="128" rx="6" fill="url(#n2' + u + ')"/><g fill="#e5e9ef">' + [0, 1, 2, 3, 4, 5, 6, 7].map(i => '<circle cx="68" cy="' + (60 + i * 15) + '" r="3.500"/>').join('') + '</g><rect x="82" y="72" width="44" height="28" rx="3" fill="#fff" fill-opacity=".95"/><path d="M88 82h32M88 90h22" stroke="#9aa3ae" stroke-width="2.500" stroke-linecap="round"/><rect x="82" y="148" width="44" height="6" rx="3" fill="#FF9900"/></g>'
   };
-  function art(p, size) {
-    return '<span class="art" style="background:' + p.tint + ';' + (size ? 'width:' + size + 'px;height:' + size + 'px' : '') + '"><svg viewBox="0 0 200 200" aria-hidden="true">' + (ART[p.art] || '') + '</svg></span>';
+  function art(p, size, colorName) {
+    const list = p.colors || [], c = list.find(x => x.n === colorName) || list[0];
+    const base = c ? c.h : '#2a2f38', u = 'u' + (++uid);
+    const st = '--pc:' + base + ';--hi:' + lighten(base, .38) + ';--lo:' + darken(base, .38) + ';background:radial-gradient(circle at 50% 36%,#ffffff 0%,' + p.tint + ' 78%);' + (size ? 'width:' + size + 'px;height:' + size + 'px' : '');
+    return '<span class="art" style="' + st + '"><svg viewBox="0 0 200 200" aria-hidden="true">' + (ART[p.art] ? ART[p.art](u) : '') + '</svg></span>';
   }
+  const colorList = p => (p.colors || []);
 
   /* ---------- QR de prototipo (patrón determinístico, no es un QR real) ---------- */
   function qr(seedStr, size) {
@@ -236,6 +290,6 @@
     return '<svg class="qr" width="' + (size || 180) + '" height="' + (size || 180) + '" viewBox="0 0 ' + N + ' ' + N + '" fill="#131A22" shape-rendering="crispEdges" role="img" aria-label="Código QR de retiro">' + r + '</svg>';
   }
 
-  window.CORE = { $, $$, esc, norm, money, km, hhmm, dayLabel, shortDate, whenLabel, ago, DAY, product, locker, S: () => S, save, resetAll, logEvent, seqFor, isDone, statusIdx, lastOrder, deadline, etaTransit, notify, advanceOrder, R, ic, LOGO, art, qr, KEY };
+  window.CORE = { $, $$, esc, norm, money, km, hhmm, dayLabel, shortDate, whenLabel, ago, DAY, product, locker, S: () => S, save, resetAll, logEvent, seqFor, isDone, statusIdx, lastOrder, deadline, deadlineLabel, remaining, mapsUrl, colorList, etaTransit, notify, advanceOrder, R, ic, LOGO, art, qr, KEY };
   Object.defineProperty(window.CORE, 'state', { get: () => S });
 })();

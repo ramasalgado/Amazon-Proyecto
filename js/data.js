@@ -17,15 +17,15 @@ window.DATA = {
 
   /* ---------- Productos ---------- */
   products: [
-    { id: 'p1', title: 'Auriculares inalámbricos Bluetooth', short: 'Auriculares inalámbricos Bluetooth', price: 89999, rating: 4.5, reviews: 2318, cat: 'Tecnología', art: 'headphones', tint: '#E9EDF2',
+    { id: 'p1', colors: [{ n: 'Negro', h: '#262b33' }, { n: 'Blanco', h: '#e8eaee' }, { n: 'Azul', h: '#2f5fa8' }], title: 'Auriculares inalámbricos Bluetooth', short: 'Auriculares inalámbricos Bluetooth', price: 89999, rating: 4.5, reviews: 2318, cat: 'Tecnología', art: 'headphones', tint: '#E9EDF2',
       bullets: ['Cancelación de ruido activa', 'Hasta 30 h de batería', 'Micrófono integrado para llamadas', 'Plegables, con estuche incluido'] },
-    { id: 'p2', title: 'Mouse inalámbrico ergonómico', short: 'Mouse inalámbrico ergonómico', price: 24999, rating: 4.3, reviews: 874, cat: 'Tecnología', art: 'mouse', tint: '#EEF0F4',
+    { id: 'p2', colors: [{ n: 'Negro', h: '#262b33' }, { n: 'Gris', h: '#8b929c' }, { n: 'Azul', h: '#2f5fa8' }], title: 'Mouse inalámbrico ergonómico', short: 'Mouse inalámbrico ergonómico', price: 24999, rating: 4.3, reviews: 874, cat: 'Tecnología', art: 'mouse', tint: '#EEF0F4',
       bullets: ['Conexión Bluetooth y USB', 'Batería de hasta 6 meses', 'Silencioso'] },
-    { id: 'p3', title: 'Mochila porta notebook 25 L', short: 'Mochila porta notebook 25 L', price: 54999, rating: 4.6, reviews: 1203, cat: 'Accesorios', art: 'backpack', tint: '#EDF1EE',
+    { id: 'p3', colors: [{ n: 'Negro', h: '#2a2f38' }, { n: 'Azul marino', h: '#1f3a63' }, { n: 'Verde', h: '#2d5a45' }], title: 'Mochila porta notebook 25 L', short: 'Mochila porta notebook 25 L', price: 54999, rating: 4.6, reviews: 1203, cat: 'Accesorios', art: 'backpack', tint: '#EDF1EE',
       bullets: ['Entra notebook de hasta 15,6"', 'Material resistente al agua', 'Puerto de carga USB externo'] },
-    { id: 'p4', title: 'Buzo canguro de algodón', short: 'Buzo canguro de algodón', price: 39999, rating: 4.4, reviews: 640, cat: 'Ropa', art: 'hoodie', tint: '#F1EEEA',
+    { id: 'p4', colors: [{ n: 'Gris', h: '#7b818c' }, { n: 'Negro', h: '#2a2d33' }, { n: 'Azul', h: '#35588f' }], title: 'Buzo canguro de algodón', short: 'Buzo canguro de algodón', price: 39999, rating: 4.4, reviews: 640, cat: 'Ropa', art: 'hoodie', tint: '#F1EEEA',
       bullets: ['Algodón peinado', 'Capucha con cordón', 'Disponible en varios talles'] },
-    { id: 'p5', title: 'Batería portátil 10.000 mAh', short: 'Batería portátil 10.000 mAh', price: 29999, rating: 4.5, reviews: 1522, cat: 'Tecnología', art: 'powerbank', tint: '#EAEFF5',
+    { id: 'p5', colors: [{ n: 'Negro', h: '#262b33' }, { n: 'Blanco', h: '#e8eaee' }, { n: 'Naranja', h: '#f08a00' }], title: 'Batería portátil 10.000 mAh', short: 'Batería portátil 10.000 mAh', price: 29999, rating: 4.5, reviews: 1522, cat: 'Tecnología', art: 'powerbank', tint: '#EAEFF5',
       bullets: ['Carga rápida USB-C', 'Carga 2 dispositivos a la vez', 'Liviana: 210 g'] },
     { id: 'p6', title: 'Pack de 3 cuadernos universitarios', short: 'Pack 3 cuadernos universitarios', price: 12999, rating: 4.7, reviews: 389, cat: 'Facultad', art: 'notebook', tint: '#F4F0E6',
       bullets: ['80 hojas rayadas cada uno', 'Tapa dura', 'Espiral doble anillo'] }
