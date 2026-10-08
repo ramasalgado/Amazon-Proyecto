@@ -109,13 +109,16 @@
         '<div class="sec-h"><h2>Más buscados</h2></div></div>' + plist(D.products.slice(0, 3));
     }
     if (!list.length) return UI.emptyState({ icon: 'search', title: 'No encontramos “' + L.q.trim() + '”.', body: 'Probá con otra palabra o explorá las categorías.', cta: UI.btn('Ver categorías', 'clearSearch', { kind: 'secondary', block: false }) });
-    return '<div class="pad-x"><p class="muted rescount">' + list.length + (list.length === 1 ? ' resultado' : ' resultados') + (L.cat ? ' en ' + L.cat : '') + (L.cat ? ' <button type="button" class="link" data-act="clearSearch">Quitar filtro</button>' : '') + '</p></div>' + plist(list);
+    return '<div class="pad-x"><p class="muted rescount">' + list.length + (list.length === 1 ? ' resultado' : ' resultados') + (L.cat ? ' en ' + L.cat : '') + '</p></div>' + plist(list);
   }
   const plist = list => '<div class="plist">' + list.map(p => '<button type="button" class="prow" data-act="openProduct" data-id="' + p.id + '">' + UI.art(p, 92) +
     '<span class="pr-b"><strong>' + esc(p.title) + '</strong><span class="pr-r">' + UI.stars(p.rating) + '<em>' + p.rating.toString().replace('.', ',') + ' (' + p.reviews.toLocaleString('es-AR') + ')</em></span><span class="price">' + money(p.price) + '</span><span class="free">Envío GRATIS</span></span></button>').join('') + '</div>';
   SC.search = {
-    render() {
-      const header = '<header class="hdr hdr-home"><div class="hdr-row"><span class="hlogo big">' + C.LOGO + '</span><div class="hright">' + UI.bellBtn() + UI.cartBtn() + '</div></div>' +
+    render(p) {
+      L.cat = p.cat || null;
+      let header;
+      if (p.cat) header = UI.hdr({ title: p.cat, right: [UI.cartBtn()] });
+      else header = '<header class="hdr hdr-home"><div class="hdr-row"><button type="button" class="hbtn" id="s-back" data-act="clearSearch" aria-label="Volver"' + (L.q ? '' : ' hidden') + '>' + ic('back', 24) + '</button><span class="hlogo big">' + C.LOGO + '</span><div class="hright">' + UI.bellBtn() + UI.cartBtn() + '</div></div>' +
         '<form class="searchbar real" id="search-form" role="search">' + ic('search', 20) + '<input id="q" type="search" placeholder="Buscar en Amazon" value="' + esc(L.q) + '" autocomplete="off" enterkeyhint="search"><button type="button" class="x" data-act="clearSearch" aria-label="Borrar búsqueda"' + (L.q ? '' : ' hidden') + '>' + ic('close', 18) + '</button></form></header>';
       return UI.page({ header, body: '<div id="results">' + searchResults() + '</div>', tab: 'search' });
     },
@@ -260,10 +263,10 @@
         '<ul class="meta"><li>' + ic('user', 18) + 'A ' + km(l.km) + ' de tu ubicación</li><li>' + ic('clock', 18) + esc(l.hours) + '</li></ul>' +
         (full ? UI.callout('err', 'info', 'No disponible', 'Por ahora no tiene espacios libres. Elegí otro locker cercano.') : UI.callout('ok', 'check', 'Disponible', 'Hay compartimentos disponibles. ' + l.sizes + '.')) +
         '<button type="button" class="lrow bordered" data-act="lockerWhere" data-id="' + l.id + '"><span class="lr-ic">' + ic('pin', 22) + '</span><span class="lr-b"><strong>Ubicación</strong><span>' + esc(l.where) + '</span></span>' + ic('chevR', 20, 'lchev') + '</button>' +
-        '<a class="link maps" href="' + esc(C.mapsUrl(l)) + '" target="_blank" rel="noopener noreferrer" data-act="openMaps">' + ic('nav', 16) + 'Ver en Google Maps</a><button type="button" class="link more" data-act="toggleMore" aria-expanded="' + open + '">Ver más información ' + ic(open ? 'chevU' : 'chevD', 14) + '</button>' +
+        '<button type="button" class="link maps" data-act="goMapNav" data-id="' + l.id + '" data-order="">' + ic('nav', 16) + 'Ver cómo llegar</button><button type="button" class="link more" data-act="toggleMore" aria-expanded="' + open + '">Ver más información ' + ic(open ? 'chevU' : 'chevD', 14) + '</button>' +
         (open ? '<div class="moreinfo"><p><strong>Tiempo para retirar.</strong> Tenés 72 horas desde que tu pedido está listo.</p><p><strong>Cómo se abre.</strong> Escaneás el QR o ingresás tu código de 6 dígitos en la pantalla del locker.</p><p><strong>Tamaños.</strong> ' + esc(l.sizes) + '.</p><p><strong>Accesibilidad.</strong> Pantalla a 1,20 m de altura y compartimentos a nivel del piso.</p></div>' : '') + '</div><div class="sp-lg"></div>';
       let footer;
-      if (p.mode === 'browse') footer = UI.link('Cómo llegar en Google Maps', C.mapsUrl(l), { icon: 'nav', act: 'openMaps' });
+      if (p.mode === 'browse') footer = UI.btn('Cómo llegar', 'goMapNav', { icon: 'nav', data: { id: l.id, order: '' } });
       else footer = UI.btn('Seleccionar este locker', 'selectLocker', { data: { id: l.id }, disabled: full, arrow: !full });
       return UI.page({ header: UI.hdr({ title: 'Detalle del locker', right }), body, footer });
     }
@@ -442,9 +445,27 @@
     render(p) {
       const l = locker(p.id);
       const body = '<div class="pad-x"><div class="lcard flat">' + UI.lockerThumb(l) + '<span class="lbody"><strong>Amazon Hub Locker<br>' + esc(l.name) + '</strong><span class="lsub">' + esc(l.address) + '</span><span class="lsub">A ' + km(l.km) + ' · ' + esc(l.where) + '</span></span></div>' +
-        UI.link('Cómo llegar en Google Maps', C.mapsUrl(l), { kind: 'dark', icon: 'nav', act: 'openMaps' }) + '</div>' +
+        UI.btn('Cómo llegar', 'goMapNav', { kind: 'dark', icon: 'nav', data: { id: l.id, order: p.orderId || '' } }) + '</div>' +
         '<div class="map static"><svg class="map-bg" viewBox="0 0 360 340" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="360" height="340" fill="#EDEFF2"/><rect x="236" y="38" width="86" height="64" rx="14" fill="#D5EBD2"/><g stroke="#fff" stroke-width="9" fill="none"><path d="M-10 78H380M-10 168H380M-10 262H380M70 -10V350M170 -10V350M262 -10V350"/></g><path d="M166 180 L166 78 L262 78" stroke="#3B82F6" stroke-width="5" stroke-dasharray="2 9" stroke-linecap="round" fill="none"/></svg><span class="me" style="left:46%;top:52%"><i></i></span><span class="pin on" style="left:73%;top:23%"><svg viewBox="0 0 40 50" width="44" height="54"><path d="M20 48C8 36 3 28 3 19a17 17 0 0134 0c0 9-5 17-17 29z"/></svg><span>' + ic('locker', 18) + '</span></span></div>';
       return UI.page({ header: UI.hdr({ title: 'Ubicación del locker' }), body, footer: (p.orderId && S().orders.find(x => x.id === p.orderId).status === 'ready') ? UI.btn('Ya estoy en el locker', 'toScan', { data: { id: p.orderId } }) : '', cls: 'loc' });
+    }
+  };
+
+  SC.mapNav = {
+    render(p) {
+      const l = locker(p.id), o = p.orderId ? S().orders.find(x => x.id === p.orderId) : null, steps = [['Salí por Av. Principal', 'Seguí derecho 2 cuadras · 180 m'], ['Girá a la derecha', 'Caminá 1 cuadra hasta la esquina · 120 m'], ['Llegás al locker', l.where]];
+      const map = '<div class="nav-map" id="navmap"><svg class="map-bg" viewBox="0 0 360 440" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="360" height="440" fill="#EDEFF2"/><rect x="226" y="40" width="96" height="70" rx="14" fill="#D5EBD2"/><rect x="20" y="300" width="70" height="60" rx="12" fill="#D5EBD2"/><path d="M0 390 Q120 350 210 380 T360 350 V440 H0Z" fill="#DCE7F3"/>' +
+        '<g stroke="#fff" stroke-width="11" fill="none" stroke-linecap="round"><path d="M-10 90H380M-10 190H380M-10 290H380M70 -10V450M190 -10V450M300 -10V450"/></g><g stroke="#fff" stroke-width="4" fill="none"><path d="M-10 140H380M-10 240H380M-10 340H380M130 -10V450M250 -10V450"/></g>' +
+        '<g font-family="Arial,sans-serif" font-size="9" fill="#8a94a3" font-weight="700"><text x="78" y="270">Av. Principal</text><text x="198" y="170" transform="rotate(-90 198 170)">Av. Callao</text></g>' +
+        '<path id="navpath" d="M70 340 L70 190 L190 190 L190 90 L270 90" pathLength="1" fill="none" stroke="#1D63C9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" class="route-line"/><circle id="navdot" cx="70" cy="340" r="9" fill="#3B82F6" stroke="#fff" stroke-width="4"/></svg>' +
+        '<span class="pin on dest" style="left:' + (270 / 360 * 100).toFixed(2) + '%;top:' + (90 / 440 * 100).toFixed(2) + '%"><svg viewBox="0 0 40 50" width="44" height="54"><path d="M20 48C8 36 3 28 3 19a17 17 0 0134 0c0 9-5 17-17 29z"/></svg><span>' + ic(l.type === 'super' ? 'cart' : 'cap', 18) + '</span></span>' +
+        '<div class="nav-banner" id="navbanner" hidden><span class="nb-ic">' + ic('nav', 26) + '</span><div><strong id="nb-t">Seguí derecho</strong><span id="nb-s">2 cuadras</span></div><b id="nb-eta">4 min</b></div></div>';
+      const card = '<div class="nav-card" id="navcard"><div class="nc-top"><b id="nc-eta">4 min</b><span>(300 m) · A pie · Llegás a las ' + C.hhmm(Date.now() + 4 * 60000) + '</span></div>' +
+        '<div class="nc-dest"><span class="lr-ic">' + ic('pin', 22) + '</span><div><strong>Amazon Hub Locker ' + esc(l.name) + '</strong><span>' + esc(l.address) + '</span></div></div>' +
+        '<ol class="nc-steps" id="ncsteps">' + steps.map((s2, i) => '<li><span>' + (i + 1) + '</span><div><strong>' + s2[0] + '</strong><em>' + esc(s2[1]) + '</em></div></li>').join('') + '</ol>' +
+        '<div id="ncact">' + UI.btn('Iniciar recorrido', 'startNav', { icon: 'nav', data: { id: l.id, order: p.orderId || '' } }) + '</div>' +
+        '<a class="link ext" href="' + esc(C.mapsUrl(l)) + '" target="_blank" rel="noopener noreferrer" data-act="openMaps">Abrir en la app de Google Maps</a></div>';
+      return UI.page({ header: UI.hdr({ title: 'Cómo llegar' }), body: map + card, cls: 'navscr' });
     }
   };
 

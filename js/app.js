@@ -14,7 +14,7 @@
   const scrollMem = {};
   function render(o) {
     o = o || {};
-    timers.splice(0).forEach(clearTimeout);
+    timers.splice(0).forEach(clearTimeout); if (window.NAVRAF) cancelAnimationFrame(window.NAVRAF);
     if (!o.keep) { UI.closeSheet(true); UI.closeModal(); }
     const cur = R.cur();
     const AUTH = ['welcome', 'login', 'register'];
@@ -74,6 +74,12 @@
     try { if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(t); return; } } catch (e) { /* fallback */ }
     const a = document.createElement('textarea'); a.value = t; a.style.position = 'fixed'; a.style.opacity = '0'; document.body.appendChild(a); a.select();
     try { document.execCommand('copy'); } catch (e) { /* noop */ } a.remove();
+  }
+  function arrive(l, o) {
+    $('#navbanner').hidden = true; C.logEvent('mapa', 'llegó a ' + l.id);
+    $('#ncact').innerHTML = '<div class="callout ok"><span class="co-ic">' + ic('check', 22) + '</span><div class="co-tx"><strong>Llegaste al locker</strong><span>' + esc(l.where) + '</span></div></div>' +
+      (o && o.status === 'ready' ? UI.btn('Ya estoy en el locker', 'toScan', { data: { id: o.id }, arrow: true }) : UI.btn('Listo', 'back', { kind: 'secondary' }));
+    $('#nc-eta').textContent = 'Llegaste';
   }
   function fieldErr(id, msg) { const f = $('#f-' + id), e = $('#e-' + id); if (f) f.classList.add('err'); if (e) { e.textContent = msg; e.hidden = false; } }
   function fieldOk(id) { const f = $('#f-' + id), e = $('#e-' + id); if (f) f.classList.remove('err'); if (e) e.hidden = true; }
@@ -292,6 +298,24 @@
     },
     toLocation(el) { const o = orderOf(el.dataset.id); UI.closeSheet(true); R.go('lockerLocation', { id: o.lockerId, orderId: o.id }); },
     openMaps() { UI.toast('Abriendo Google Maps en otra pestaña…'); },
+    goMapNav(el) { R.go('mapNav', { id: el.dataset.id, orderId: el.dataset.order || '' }); },
+    startNav(el) {
+      const l = locker(el.dataset.id), o = el.dataset.order ? orderOf(el.dataset.order) : null;
+      const path = $('#navpath'), dot = $('#navdot'), len = path.getTotalLength(), t0 = performance.now(), DUR = 7500;
+      $('#ncsteps').hidden = true; $('#navbanner').hidden = false; $('#ncact').innerHTML = '<div class="nc-live">' + ic('nav', 18) + 'Navegando…</div>';
+      const say = [[0, 'Seguí derecho', '2 cuadras por Av. Principal', 4], [.34, 'Girá a la derecha', 'En Av. Callao, 1 cuadra', 2], [.72, 'El locker está adelante', l.where, 1]];
+      let last = -1;
+      const tick = now => {
+        if (!$('#navpath')) return;
+        const k = Math.min(1, (now - t0) / DUR), pt = path.getPointAtLength(k * len);
+        dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y);
+        let i = 0; say.forEach((s2, j) => { if (k >= s2[0]) i = j; });
+        if (i !== last) { last = i; $('#nb-t').textContent = say[i][1]; $('#nb-s').textContent = say[i][2]; $('#nb-eta').textContent = say[i][3] + ' min'; $('#nc-eta').textContent = say[i][3] + ' min'; }
+        if (k < 1) window.NAVRAF = requestAnimationFrame(tick);
+        else arrive(l, o);
+      };
+      window.NAVRAF = requestAnimationFrame(tick);
+    },
     toScan(el) { L.code = ''; L.codeErr = ''; R.go('scan', { id: el.dataset.id }); },
     doScan(el) {
       const o = orderOf(el.dataset.id); el.classList.add('hit');
@@ -319,8 +343,8 @@
 
     /* ----- Búsqueda de productos ----- */
     recentSearch(el) { L.q = el.dataset.q; L.cat = null; rerender(); },
-    pickCat(el) { L.cat = el.dataset.cat; rerender(); },
-    clearSearch() { L.q = ''; L.cat = null; rerender(); const i = $('#q'); if (i) i.focus(); },
+    pickCat(el) { R.go('search', { cat: el.dataset.cat }); },
+    clearSearch() { L.q = ''; L.cat = null; rerender(); },
 
     /* ----- Soporte / varios ----- */
     support() {
@@ -377,7 +401,7 @@
     if (t.id === 'q') {
       L.q = t.value; L.cat = null;
       $('#results').innerHTML = SC.search.results();
-      const x = $('.searchbar .x'); if (x) x.hidden = !L.q;
+      const x = $('.searchbar .x'); if (x) x.hidden = !L.q; const sb = $('#s-back'); if (sb) sb.hidden = !L.q;
     } else if (t.id === 'lq') {
       L.ls.q = t.value; L.ls.sel = null;
       const r = $('#lres'); if (r) r.innerHTML = SC.lockerSearch.results();

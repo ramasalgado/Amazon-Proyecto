@@ -216,58 +216,125 @@
   const hex2 = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
   const mixHex = (h, t, k) => '#' + hex2(h).map((v, i) => Math.round(v + (t[i] - v) * k).toString(16).padStart(2, '0')).join('');
   const lighten = (h, k) => mixHex(h, [255, 255, 255], k), darken = (h, k) => mixHex(h, [0, 0, 0], k);
-  const G = u => '<defs><linearGradient id="b' + u + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--hi)"/><stop offset=".55" style="stop-color:var(--pc)"/><stop offset="1" style="stop-color:var(--lo)"/></linearGradient>' +
+  const FX = u => '<filter id="bl' + u + '" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4"/></filter><filter id="bm' + u + '" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>' +
+    '<filter id="nz' + u + '" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="t"/><feColorMatrix in="t" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1.5 0 0 0 -.32" result="a"/><feComposite in="a" in2="SourceGraphic" operator="in"/></filter>' +
+    '<filter id="nl' + u + '" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".04 .55" numOctaves="2" seed="3" result="t"/><feColorMatrix in="t" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1.4 0 0 0 -.35" result="a"/><feComposite in="a" in2="SourceGraphic" operator="in"/></filter>' +
+    '<linearGradient id="mt' + u + '" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f1f3f6"/><stop offset=".45" stop-color="#8f98a4"/><stop offset=".7" stop-color="#d7dce2"/><stop offset="1" stop-color="#7b838e"/></linearGradient>' +
+    '<radialGradient id="ao' + u + '" cx=".5" cy=".42" r=".72"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".42"/></radialGradient>';
+  const G = u => '<defs>' + FX(u) + '<linearGradient id="b' + u + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--hi)"/><stop offset=".55" style="stop-color:var(--pc)"/><stop offset="1" style="stop-color:var(--lo)"/></linearGradient>' +
     '<linearGradient id="d' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--hi)"/><stop offset="1" style="stop-color:var(--lo)"/></linearGradient>' +
-    '<radialGradient id="c' + u + '" cx=".32" cy=".25" r=".9"><stop offset="0" style="stop-color:var(--hi)"/><stop offset=".6" style="stop-color:var(--pc)"/><stop offset="1" style="stop-color:var(--lo)"/></radialGradient>' +
-    '<radialGradient id="s' + u + '"><stop offset="0" stop-color="#000" stop-opacity=".32"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient></defs>';
-  const SH = (u, rx) => '<ellipse cx="100" cy="177" rx="' + (rx || 62) + '" ry="8" fill="url(#s' + u + ')"/>';
+    '<radialGradient id="c' + u + '" cx=".3" cy=".22" r=".95"><stop offset="0" style="stop-color:var(--hi)"/><stop offset=".55" style="stop-color:var(--pc)"/><stop offset="1" style="stop-color:var(--lo)"/></radialGradient>' +
+    '<radialGradient id="s' + u + '"><stop offset="0" stop-color="#000" stop-opacity=".42"/><stop offset=".6" stop-color="#000" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient></defs>';
+  const SH = (u, rx) => '<ellipse cx="100" cy="178" rx="' + (rx || 62) + '" ry="7.500" fill="url(#s' + u + ')"/><ellipse cx="100" cy="176" rx="' + ((rx || 62) * .62) + '" ry="3" fill="#000" fill-opacity=".28" filter="url(#bl' + u + ')"/>';
+  const W = (x, y, rx, ry, o, u, rot) => '<ellipse cx="' + x + '" cy="' + y + '" rx="' + rx + '" ry="' + ry + '" fill="#fff" fill-opacity="' + o + '" filter="url(#bl' + u + ')"' + (rot ? ' transform="rotate(' + rot + ' ' + x + ' ' + y + ')"' : '') + '/>';
   const ART = {
-    headphones: u => G(u) + SH(u) +
-      '<path d="M43 122C38 30 162 30 157 122" fill="none" stroke="url(#b' + u + ')" stroke-width="14" stroke-linecap="round"/><path d="M51 118C50 46 150 46 149 118" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="3"/>' +
-      '<path d="M63 62C85 46 115 46 137 62" fill="none" stroke="#000" stroke-opacity=".14" stroke-width="5" stroke-linecap="round"/>' +
-      '<rect x="31" y="104" width="13" height="30" rx="5" fill="#b9c0ca"/><rect x="156" y="104" width="13" height="30" rx="5" fill="#b9c0ca"/>' +
-      '<rect x="20" y="112" width="42" height="64" rx="21" fill="url(#c' + u + ')"/><rect x="138" y="112" width="42" height="64" rx="21" fill="url(#c' + u + ')"/>' +
-      '<ellipse cx="41" cy="144" rx="12" ry="22" fill="none" stroke="#FF9900" stroke-width="3"/><ellipse cx="159" cy="144" rx="12" ry="22" fill="none" stroke="#FF9900" stroke-width="3"/>' +
-      '<path d="M27 128q3-9 12-12" stroke="#fff" stroke-opacity=".45" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M145 128q3-9 12-12" stroke="#fff" stroke-opacity=".3" stroke-width="3" fill="none" stroke-linecap="round"/>',
-    mouse: u => G(u) + SH(u, 52) +
-      '<path d="M100 26C134 26 150 52 150 88v34c0 36-21 55-50 55s-50-19-50-55V88c0-36 16-62 50-62z" fill="url(#c' + u + ')"/>' +
-      '<path d="M100 28v58M52 88q48 14 96 0" stroke="#000" stroke-opacity=".28" stroke-width="2" fill="none"/>' +
-      '<path d="M62 70C66 46 80 34 100 33" stroke="#fff" stroke-opacity=".4" stroke-width="4" fill="none" stroke-linecap="round"/>' +
-      '<rect x="93" y="48" width="14" height="26" rx="7" fill="#11151a"/><rect x="97" y="52" width="6" height="10" rx="3" fill="#FF9900"/>' +
-      '<path d="M54 120q-2 30 14 44" stroke="#000" stroke-opacity=".18" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="100" cy="146" r="6" fill="#000" fill-opacity=".2"/>',
-    backpack: u => G(u) + SH(u, 58) +
-      '<path d="M82 46c0-16 6-22 18-22s18 6 18 22" fill="none" stroke="url(#d' + u + ')" stroke-width="7" stroke-linecap="round"/>' +
-      '<rect x="46" y="40" width="108" height="134" rx="38" fill="url(#c' + u + ')"/>' +
-      '<path d="M60 72q40-16 80 0" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="2.500" stroke-dasharray="1 5" stroke-linecap="round"/><rect x="96" y="62" width="9" height="14" rx="3" fill="#FF9900"/>' +
-      '<rect x="62" y="104" width="76" height="56" rx="18" fill="url(#d' + u + ')"/><path d="M70 118h60" stroke="#000" stroke-opacity=".3" stroke-width="2.500" stroke-dasharray="1 5" stroke-linecap="round"/><rect x="96" y="112" width="9" height="13" rx="3" fill="#FF9900"/>' +
-      '<path d="M48 110q-14 8-14 34q0 16 14 20M152 110q14 8 14 34q0 16-14 20" fill="none" stroke="url(#d' + u + ')" stroke-width="9" stroke-linecap="round"/>' +
-      '<path d="M56 62C58 50 66 44 76 43" stroke="#fff" stroke-opacity=".3" stroke-width="4" fill="none" stroke-linecap="round"/>',
-    hoodie: u => G(u) + SH(u, 66) +
-      '<path d="M70 40L36 58 20 120l26 8 10-28v76h88v-76l10 28 26-8-16-62-34-18C122 54 78 54 70 40z" fill="url(#c' + u + ')"/>' +
-      '<path d="M70 40C78 22 122 22 130 40 120 66 108 72 100 72S80 66 70 40z" fill="url(#d' + u + ')"/><path d="M82 42c6-10 30-10 36 0-4 14-12 20-18 20s-14-6-18-20z" fill="#000" fill-opacity=".38"/>' +
-      '<path d="M92 66v30M108 66v30" stroke="#e9ecef" stroke-width="3" stroke-linecap="round"/><circle cx="92" cy="98" r="3" fill="#cfd4da"/><circle cx="108" cy="98" r="3" fill="#cfd4da"/>' +
-      '<path d="M70 132h60l10 34H60z" fill="#000" fill-opacity=".16"/><path d="M70 132l-10 34M130 132l10 34" stroke="#000" stroke-opacity=".25" stroke-width="2"/>' +
-      '<rect x="56" y="166" width="88" height="10" rx="4" fill="#000" fill-opacity=".28"/><rect x="20" y="116" width="26" height="10" rx="4" fill="#000" fill-opacity=".25" transform="rotate(14 33 121)"/><rect x="154" y="116" width="26" height="10" rx="4" fill="#000" fill-opacity=".25" transform="rotate(-14 167 121)"/>' +
-      '<path d="M60 96q8 18 4 36M140 96q-8 18-4 36M90 110q-4 12 0 22" stroke="#000" stroke-opacity=".15" stroke-width="5" fill="none" stroke-linecap="round"/>',
-    powerbank: u => G(u) + SH(u, 50) +
-      '<rect x="60" y="24" width="82" height="150" rx="17" fill="#000" fill-opacity=".35" transform="translate(5 0)"/>' +
-      '<rect x="58" y="24" width="82" height="150" rx="17" fill="url(#c' + u + ')"/>' +
-      '<rect x="66" y="34" width="66" height="58" rx="10" fill="#0b0f14"/><path d="M70 40h40" stroke="#fff" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>' +
-      '<circle cx="78" cy="78" r="4" fill="#22c55e"/><circle cx="92" cy="78" r="4" fill="#22c55e"/><circle cx="106" cy="78" r="4" fill="#22c55e"/><circle cx="120" cy="78" r="4" fill="#4b5563"/>' +
-      '<text x="99" y="62" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#FF9900">10000 mAh</text>' +
-      '<rect x="80" y="154" width="38" height="9" rx="4.500" fill="#0b0f14"/><rect x="87" y="157" width="24" height="3" rx="1.500" fill="#4b5563"/>' +
-      '<path d="M64 100q-2 30 0 44" stroke="#fff" stroke-opacity=".25" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="72" y="110" width="52" height="3" rx="1.500" fill="#fff" fill-opacity=".22"/>',
-    notebook: u => '<defs><radialGradient id="s' + u + '"><stop offset="0" stop-color="#000" stop-opacity=".32"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>' +
-      '<linearGradient id="n1' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffae33"/><stop offset="1" stop-color="#e57f00"/></linearGradient><linearGradient id="n2' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a4656"/><stop offset="1" stop-color="#1c2430"/></linearGradient><linearGradient id="n3' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7aa6d8"/><stop offset="1" stop-color="#4f78b0"/></linearGradient></defs>' + SH(u, 66) +
-      '<g transform="rotate(-12 70 110)"><rect x="40" y="34" width="70" height="128" rx="6" fill="url(#n3' + u + ')"/><g fill="#d5dbe3">' + [0, 1, 2, 3, 4, 5, 6, 7].map(i => '<circle cx="42" cy="' + (46 + i * 15) + '" r="3.500"/>').join('') + '</g><rect x="56" y="58" width="42" height="26" rx="3" fill="#fff" fill-opacity=".9"/></g>' +
-      '<g transform="rotate(10 130 110)"><rect x="92" y="30" width="70" height="128" rx="6" fill="url(#n1' + u + ')"/><g fill="#e5e9ef">' + [0, 1, 2, 3, 4, 5, 6, 7].map(i => '<circle cx="94" cy="' + (42 + i * 15) + '" r="3.500"/>').join('') + '</g><rect x="108" y="54" width="42" height="26" rx="3" fill="#fff" fill-opacity=".92"/><path d="M114 62h30M114 70h22" stroke="#9aa3ae" stroke-width="2.500" stroke-linecap="round"/></g>' +
-      '<g><rect x="66" y="48" width="70" height="128" rx="6" fill="url(#n2' + u + ')"/><g fill="#e5e9ef">' + [0, 1, 2, 3, 4, 5, 6, 7].map(i => '<circle cx="68" cy="' + (60 + i * 15) + '" r="3.500"/>').join('') + '</g><rect x="82" y="72" width="44" height="28" rx="3" fill="#fff" fill-opacity=".95"/><path d="M88 82h32M88 90h22" stroke="#9aa3ae" stroke-width="2.500" stroke-linecap="round"/><rect x="82" y="148" width="44" height="6" rx="3" fill="#FF9900"/></g>'
+    headphones: u => G(u) + SH(u, 70) +
+      /* diadema */
+      '<path d="M45 124C38 30 162 30 155 124" fill="none" stroke="#000" stroke-opacity=".28" stroke-width="16" stroke-linecap="round" transform="translate(0 2.500)" filter="url(#bl' + u + ')"/>' +
+      '<path d="M45 124C38 30 162 30 155 124" fill="none" stroke="url(#b' + u + ')" stroke-width="14" stroke-linecap="round"/>' +
+      '<path d="M45 124C38 30 162 30 155 124" fill="none" stroke="#000" stroke-width="14" stroke-linecap="round" filter="url(#nz' + u + ')" opacity=".28"/>' +
+      '<path d="M50 118C46 42 154 42 150 118" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="2.500" stroke-linecap="round"/>' +
+      '<path d="M66 60C86 44 114 44 134 60" fill="none" stroke="#000" stroke-opacity=".22" stroke-width="19" stroke-linecap="round"/><path d="M66 60C86 44 114 44 134 60" fill="none" stroke="url(#b' + u + ')" stroke-width="15" stroke-linecap="round" opacity=".9"/><path d="M70 55C88 43 112 43 130 55" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="2.500" stroke-linecap="round"/>' +
+      /* sliders metálicos */
+      '<rect x="33" y="108" width="14" height="36" rx="5" fill="url(#mt' + u + ')"/><rect x="153" y="108" width="14" height="36" rx="5" fill="url(#mt' + u + ')"/><path d="M36 116h8M36 122h8M36 128h8M156 116h8M156 122h8M156 128h8" stroke="#000" stroke-opacity=".25" stroke-width="1"/>' +
+      /* auriculares */
+      '<rect x="14" y="120" width="50" height="58" rx="24" fill="#000" fill-opacity=".3" transform="translate(2 3)" filter="url(#bl' + u + ')"/><rect x="136" y="120" width="50" height="58" rx="24" fill="#000" fill-opacity=".3" transform="translate(2 3)" filter="url(#bl' + u + ')"/>' +
+      '<rect x="14" y="118" width="50" height="60" rx="25" fill="url(#c' + u + ')"/><rect x="136" y="118" width="50" height="60" rx="25" fill="url(#c' + u + ')"/>' +
+      '<rect x="14" y="118" width="50" height="60" rx="25" fill="url(#ao' + u + ')"/><rect x="136" y="118" width="50" height="60" rx="25" fill="url(#ao' + u + ')"/>' +
+      '<rect x="14" y="118" width="50" height="60" rx="25" fill="#000" filter="url(#nz' + u + ')" opacity=".16"/><rect x="136" y="118" width="50" height="60" rx="25" fill="#000" filter="url(#nz' + u + ')" opacity=".16"/>' +
+      '<ellipse cx="39" cy="148" rx="16" ry="23" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="2"/><ellipse cx="39" cy="148" rx="13" ry="20" fill="none" stroke="#FF9900" stroke-width="2.200"/><ellipse cx="161" cy="148" rx="16" ry="23" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="2"/><ellipse cx="161" cy="148" rx="13" ry="20" fill="none" stroke="#FF9900" stroke-width="2.200"/>' +
+      '<circle cx="168" cy="166" r="2" fill="#fff" fill-opacity=".5"/><circle cx="160" cy="170" r="1.500" fill="#fff" fill-opacity=".35"/>' +
+      W(28, 128, 7, 14, .55, u, -20) + W(150, 128, 6, 12, .4, u, -20) +
+      '<path d="M63 134q5 14 0 28" stroke="#0b0d11" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M137 134q-5 14 0 28" stroke="#0b0d11" stroke-width="4" fill="none" stroke-linecap="round"/>',
+
+    mouse: u => G(u) + SH(u, 50) +
+      '<defs><clipPath id="mc' + u + '"><path d="M100 24C136 24 154 52 154 90v32c0 38-22 58-54 58s-54-20-54-58V90c0-38 18-66 54-66z"/></clipPath><linearGradient id="sd' + u + '" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset=".6" stop-color="#000" stop-opacity=".05"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></linearGradient></defs>' +
+      '<path d="M100 24C136 24 154 52 154 90v32c0 38-22 58-54 58s-54-20-54-58V90c0-38 18-66 54-66z" fill="#000" fill-opacity=".3" transform="translate(3 4)" filter="url(#bl' + u + ')"/>' +
+      '<g clip-path="url(#mc' + u + ')"><rect x="40" y="20" width="120" height="164" fill="url(#c' + u + ')"/><rect x="40" y="20" width="120" height="164" fill="url(#sd' + u + ')"/>' +
+      '<path d="M38 96q24 12 62 12t62-12v-80H38z" fill="#fff" fill-opacity=".05"/>' +
+      /* agarre lateral de goma */
+      '<path d="M40 100c10 6 18 20 18 44s-8 36-18 40z" fill="#000" fill-opacity=".35" filter="url(#nz' + u + ')"/><path d="M46 112c8 8 12 20 12 36" stroke="#000" stroke-opacity=".3" stroke-width="3" fill="none"/>' +
+      '<rect x="40" y="20" width="120" height="164" fill="url(#ao' + u + ')"/>' + W(78, 56, 26, 36, .5, u, -18) + W(120, 40, 12, 6, .35, u) + '</g>' +
+      '<path d="M100 26v66M48 96q52 14 104 0" stroke="#000" stroke-opacity=".5" stroke-width="2" fill="none"/><path d="M101 26v66M49 97q52 14 104 0" stroke="#fff" stroke-opacity=".12" stroke-width="1" fill="none"/>' +
+      /* rueda */
+      '<rect x="90" y="40" width="20" height="38" rx="9" fill="#0c0f13"/><rect x="93" y="43" width="14" height="32" rx="6" fill="url(#mt' + u + ')"/><path d="M93 50h14M93 55h14M93 60h14M93 65h14M93 70h14" stroke="#000" stroke-opacity=".45" stroke-width="1.500"/>' +
+      '<rect x="95" y="104" width="10" height="3" rx="1.500" fill="#FF9900"/>' +
+      '<path d="M100 24C136 24 154 52 154 90v32c0 38-22 58-54 58s-54-20-54-58V90c0-38 18-66 54-66z" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="1.200"/>',
+
+    backpack: u => G(u) + SH(u, 60) +
+      '<defs><path id="bp' + u + '" d="M52 62C52 40 72 32 100 32s48 8 48 30l8 88c1 18-14 28-56 28S44 168 44 150z"/><clipPath id="bc' + u + '"><use href="#bp' + u + '"/></clipPath></defs>' +
+      '<path d="M82 40c0-18 6-26 18-26s18 8 18 26" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round" opacity=".45"/><path d="M82 40c0-18 6-26 18-26s18 8 18 26" fill="none" stroke="url(#d' + u + ')" stroke-width="7" stroke-linecap="round"/>' +
+      '<use href="#bp' + u + '" fill="#000" fill-opacity=".3" transform="translate(3 4)" filter="url(#bl' + u + ')"/>' +
+      /* correas y bolsillos laterales (detrás) */
+      '<path d="M46 108q-18 6-18 32 0 22 16 28" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="12" stroke-linecap="round"/><path d="M154 108q18 6 18 32 0 22-16 28" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="12" stroke-linecap="round"/>' +
+      '<path d="M46 108q-18 6-18 32 0 22 16 28" fill="none" stroke="url(#d' + u + ')" stroke-width="9" stroke-linecap="round"/><path d="M154 108q18 6 18 32 0 22-16 28" fill="none" stroke="url(#d' + u + ')" stroke-width="9" stroke-linecap="round"/>' +
+      '<g clip-path="url(#bc' + u + ')"><rect x="40" y="28" width="124" height="160" fill="url(#c' + u + ')"/><rect x="40" y="28" width="124" height="160" fill="#000" filter="url(#nz' + u + ')" opacity=".38"/>' +
+      /* compartimento principal */
+      '<path d="M54 74Q100 56 146 74" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="5" stroke-linecap="round"/><path d="M54 74Q100 56 146 74" fill="none" stroke="#cfd4da" stroke-opacity=".8" stroke-width="2.500" stroke-dasharray="1.500 2" stroke-linecap="butt"/>' +
+      '<path d="M54 86Q100 68 146 86" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="1.500" stroke-dasharray="3 3"/>' +
+      /* bolsillo frontal */
+      '<path d="M60 112Q100 102 140 112L138 160Q100 170 62 160Z" fill="#000" fill-opacity=".35" transform="translate(1.500 2.500)" filter="url(#bl' + u + ')"/><path d="M60 110Q100 100 140 110L138 158Q100 168 62 158Z" fill="url(#d' + u + ')"/><path d="M60 110Q100 100 140 110L138 158Q100 168 62 158Z" fill="#000" filter="url(#nz' + u + ')" opacity=".5"/>' +
+      '<path d="M64 118Q100 109 136 118" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="4"/><path d="M64 118Q100 109 136 118" fill="none" stroke="#cfd4da" stroke-opacity=".7" stroke-width="2" stroke-dasharray="1.500 2"/>' +
+      '<path d="M64 154Q100 164 136 154" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="1.200" stroke-dasharray="3 2.500"/><rect x="88" y="132" width="24" height="9" rx="2" fill="#0b0d11" fill-opacity=".7"/><rect x="92" y="135" width="16" height="2.500" rx="1" fill="#FF9900"/>' +
+      '<rect x="40" y="28" width="124" height="160" fill="url(#ao' + u + ')"/>' + W(74, 62, 14, 26, .35, u, -14) + '</g>' +
+      '<rect x="95" y="76" width="9" height="13" rx="3" fill="url(#mt' + u + ')"/><rect x="97" y="86" width="5" height="9" rx="2" fill="#FF9900"/><rect x="95" y="116" width="9" height="12" rx="3" fill="url(#mt' + u + ')"/><rect x="97" y="124" width="5" height="8" rx="2" fill="#FF9900"/>' +
+      '<use href="#bp' + u + '" fill="none" stroke="#000" stroke-opacity=".4" stroke-width="1.200"/>',
+
+    hoodie: u => G(u) + SH(u, 70) +
+      '<defs><path id="hb' + u + '" d="M72 42L38 56Q18 64 14 122L21 130Q34 132 45 126L50 102L52 172Q100 184 148 172L150 102L155 126Q166 132 179 130L186 122Q182 64 162 56L128 42Q100 64 72 42Z"/><clipPath id="hc' + u + '"><use href="#hb' + u + '"/></clipPath></defs>' +
+      '<use href="#hb' + u + '" fill="#000" fill-opacity=".28" transform="translate(3 4)" filter="url(#bl' + u + ')"/>' +
+      '<g clip-path="url(#hc' + u + ')"><rect x="8" y="30" width="184" height="160" fill="url(#c' + u + ')"/><rect x="8" y="30" width="184" height="160" fill="#000" filter="url(#nz' + u + ')" opacity=".28"/>' +
+      /* pliegues */
+      '<g filter="url(#bm' + u + ')" fill="none" stroke="#000" stroke-linecap="round"><path d="M30 70Q36 100 26 124" stroke-opacity=".35" stroke-width="7"/><path d="M170 70Q164 100 174 124" stroke-opacity=".35" stroke-width="7"/><path d="M62 96Q74 124 66 168" stroke-opacity=".3" stroke-width="8"/><path d="M138 96Q126 124 134 168" stroke-opacity=".3" stroke-width="8"/><path d="M96 100Q100 130 98 160" stroke-opacity=".18" stroke-width="10"/></g>' +
+      '<g filter="url(#bm' + u + ')" fill="#fff"><ellipse cx="48" cy="82" rx="8" ry="22" fill-opacity=".14" transform="rotate(-14 48 82)"/><ellipse cx="152" cy="82" rx="8" ry="22" fill-opacity=".1" transform="rotate(14 152 82)"/><ellipse cx="82" cy="120" rx="10" ry="26" fill-opacity=".12"/></g>' +
+      '<rect x="8" y="30" width="184" height="160" fill="url(#ao' + u + ')"/>' +
+      /* bolsillo canguro */
+      '<path d="M64 130L136 130L148 170L52 170Z" fill="#000" fill-opacity=".18"/><path d="M64 130L52 170M136 130L148 170" stroke="#000" stroke-opacity=".38" stroke-width="2"/><path d="M66 132L135 132" stroke="#000" stroke-opacity=".3" stroke-width="2"/><path d="M62 130L137 130" stroke="#fff" stroke-opacity=".15" stroke-width="1.500"/>' +
+      '<path d="M64 134L137 134M57 158L143 158" stroke="#fff" stroke-opacity=".14" stroke-width="1" stroke-dasharray="3 2.500"/>' +
+      /* puños y ruedo acanalados */
+      '<path d="M14 122L21 130Q34 132 45 126L40 112Q28 116 14 112Z" fill="#000" fill-opacity=".3"/><path d="M186 122L179 130Q166 132 155 126L160 112Q172 116 186 112Z" fill="#000" fill-opacity=".3"/>' +
+      '<path d="M18 120l5 8M24 118l5 9M30 117l5 9M36 115l5 9M42 113l4 9M182 120l-5 8M176 118l-5 9M170 117l-5 9M164 115l-5 9M158 113l-4 9" stroke="#000" stroke-opacity=".3" stroke-width="1.200"/>' +
+      '<rect x="48" y="168" width="104" height="16" fill="#000" fill-opacity=".3"/><path d="M52 169v14M58 169v14M64 169v14M70 169v14M76 169v14M82 169v14M88 169v14M94 169v14M100 169v14M106 169v14M112 169v14M118 169v14M124 169v14M130 169v14M136 169v14M142 169v14M148 169v14" stroke="#000" stroke-opacity=".28" stroke-width="1.200"/></g>' +
+      /* capucha */
+      '<path d="M68 44C66 12 134 12 132 44 126 72 114 80 100 80S74 72 68 44z" fill="#000" fill-opacity=".3" transform="translate(0 3)" filter="url(#bl' + u + ')"/>' +
+      '<path d="M68 44C66 12 134 12 132 44 126 72 114 80 100 80S74 72 68 44z" fill="url(#c' + u + ')"/><path d="M68 44C66 12 134 12 132 44 126 72 114 80 100 80S74 72 68 44z" fill="#000" filter="url(#nz' + u + ')" opacity=".4"/>' +
+      '<path d="M80 46C82 28 118 28 120 46 116 64 108 72 100 72S84 64 80 46z" fill="#0d0f12"/><path d="M80 46C82 28 118 28 120 46 116 64 108 72 100 72S84 64 80 46z" fill="url(#ao' + u + ')" opacity=".9"/><path d="M84 40C90 31 110 31 116 40" stroke="#fff" stroke-opacity=".12" stroke-width="2" fill="none"/>' +
+      W(84, 24, 12, 5, .35, u, -10) +
+      /* cordones */
+      '<circle cx="92" cy="76" r="3" fill="url(#mt' + u + ')"/><circle cx="108" cy="76" r="3" fill="url(#mt' + u + ')"/><path d="M92 79q-4 14 -2 30M108 79q4 14 2 30" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="4.500" stroke-linecap="round"/><path d="M92 79q-4 14 -2 30M108 79q4 14 2 30" fill="none" stroke="#eceff2" stroke-width="3" stroke-linecap="round"/><rect x="87.500" y="108" width="5" height="9" rx="2" fill="url(#mt' + u + ')"/><rect x="107.500" y="108" width="5" height="9" rx="2" fill="url(#mt' + u + ')"/>',
+
+    powerbank: u => G(u) + SH(u, 56) +
+      '<path d="M50 34Q50 24 60 24H116Q126 24 126 34V166Q126 176 116 176H60Q50 176 50 166Z" fill="#000" fill-opacity=".35" transform="translate(5 5)" filter="url(#bl' + u + ')"/>' +
+      /* cara lateral */
+      '<path d="M120 26L142 20Q148 20 148 28V162Q148 172 140 174L120 178Z" fill="url(#b' + u + ')"/><path d="M120 26L142 20Q148 20 148 28V162Q148 172 140 174L120 178Z" fill="#000" opacity=".42"/>' +
+      /* frente */
+      '<path d="M50 34Q50 24 60 24H116Q126 24 126 34V166Q126 176 116 176H60Q50 176 50 166Z" fill="url(#c' + u + ')"/><path d="M50 34Q50 24 60 24H116Q126 24 126 34V166Q126 176 116 176H60Q50 176 50 166Z" fill="#000" filter="url(#nz' + u + ')" opacity=".28"/><path d="M50 34Q50 24 60 24H116Q126 24 126 34V166Q126 176 116 176H60Q50 176 50 166Z" fill="url(#ao' + u + ')"/>' +
+      '<path d="M52 36Q52 26 61 26H115" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.500" stroke-linecap="round"/><path d="M51 40V160" stroke="#fff" stroke-opacity=".22" stroke-width="1.500"/>' +
+      '<rect x="60" y="30" width="56" height="3" rx="1.500" fill="#fff" fill-opacity=".1"/>' +
+      '<g><circle cx="68" cy="48" r="3.200" fill="#34d058"/><circle cx="80" cy="48" r="3.200" fill="#34d058"/><circle cx="92" cy="48" r="3.200" fill="#34d058"/><circle cx="104" cy="48" r="3.200" fill="#3a4350"/><circle cx="68" cy="48" r="7" fill="#34d058" opacity=".3" filter="url(#bl' + u + ')"/><circle cx="80" cy="48" r="7" fill="#34d058" opacity=".3" filter="url(#bl' + u + ')"/><circle cx="92" cy="48" r="7" fill="#34d058" opacity=".25" filter="url(#bl' + u + ')"/></g>' +
+      '<text x="88" y="108" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="17" font-weight="800" fill="#fff" fill-opacity=".92" letter-spacing="-.3">10000</text><text x="88" y="121" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="8" font-weight="700" fill="#fff" fill-opacity=".7" letter-spacing="1">mAh</text><text x="88" y="150" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="6.500" font-weight="700" fill="#fff" fill-opacity=".45" letter-spacing="1.600">POWERCORE</text>' +
+      '<rect x="64" y="132" width="48" height="1.200" rx=".6" fill="#fff" fill-opacity=".16"/>' +
+      '<rect x="62" y="162" width="20" height="8" rx="2" fill="#07090c"/><rect x="65" y="164.500" width="14" height="3" rx="1" fill="#586270"/><rect x="88" y="162" width="14" height="8" rx="3" fill="#07090c"/><rect x="91" y="164.500" width="8" height="3" rx="1.500" fill="#586270"/>' +
+      W(62, 74, 6, 26, .35, u, 0),
+
+    notebook: u => '<defs>' + FX(u) + '<radialGradient id="s' + u + '"><stop offset="0" stop-color="#000" stop-opacity=".42"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>' +
+      '<linearGradient id="n1' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb347"/><stop offset="1" stop-color="#e07b00"/></linearGradient><linearGradient id="n2' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#46556a"/><stop offset="1" stop-color="#1b2431"/></linearGradient><linearGradient id="n3' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8db7e6"/><stop offset="1" stop-color="#4d79b3"/></linearGradient>' +
+      '<linearGradient id="gl' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>' +
+      '<ellipse cx="100" cy="178" rx="70" ry="8" fill="url(#s' + u + ')"/>' +
+      (c => { const nb = (x, y, w, h, g, rot, lab) => '<g transform="rotate(' + rot + ' ' + (x + w / 2) + ' ' + (y + h / 2) + ')">' +
+        '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="6" fill="#000" fill-opacity=".3" transform="translate(3 4)" filter="url(#bl' + u + ')"/>' +
+        '<rect x="' + (x + 3) + '" y="' + (y + 3) + '" width="' + w + '" height="' + h + '" rx="5" fill="#f4f1ea"/><path d="M' + (x + 6) + ' ' + (y + h + 1) + 'h' + (w - 4) + 'M' + (x + w + 1.500) + ' ' + (y + 8) + 'v' + (h - 6) + '" stroke="#c9c4b8" stroke-width="1" stroke-dasharray="1.500 1.200"/>' +
+        '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="6" fill="url(#' + g + u + ')"/><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="6" fill="#000" filter="url(#nl' + u + ')" opacity=".28"/><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="6" fill="url(#gl' + u + ')"/>' +
+        [0, 1, 2, 3, 4, 5, 6, 7].map(i => { const cy = y + 12 + i * ((h - 22) / 7); return '<ellipse cx="' + (x + 2) + '" cy="' + cy + '" rx="2.200" ry="1.600" fill="#10141a"/><path d="M' + (x - 5) + ' ' + (cy + 1.500) + 'q3-5.500 9-2.200" fill="none" stroke="#e9edf2" stroke-width="1.500" stroke-linecap="round"/><path d="M' + (x - 4) + ' ' + (cy + .2) + 'q2-3 6-1.200" fill="none" stroke="#7d8793" stroke-width=".7" stroke-linecap="round"/>'; }).join('') +
+        '<rect x="' + (x + 14) + '" y="' + (y + 16) + '" width="' + (w - 24) + '" height="26" rx="3" fill="#fff" fill-opacity=".95"/><path d="M' + (x + 19) + ' ' + (y + 24) + 'h' + (w - 34) + 'M' + (x + 19) + ' ' + (y + 31) + 'h' + (w - 44) + '" stroke="#a7b0bb" stroke-width="2" stroke-linecap="round"/>' + (lab || '') + '</g>';
+        return nb(36, 34, 70, 126, 'n3', -13, '') + nb(96, 30, 70, 126, 'n1', 11, '') + nb(62, 46, 72, 128, 'n2', 0, '<rect x="76" y="150" width="46" height="5" rx="2.500" fill="#FF9900"/>'); })()
   };
   function art(p, size, colorName) {
     const list = p.colors || [], c = list.find(x => x.n === colorName) || list[0];
     const base = c ? c.h : '#2a2f38', u = 'u' + (++uid);
     const st = '--pc:' + base + ';--hi:' + lighten(base, .38) + ';--lo:' + darken(base, .38) + ';background:radial-gradient(circle at 50% 36%,#ffffff 0%,' + p.tint + ' 78%);' + (size ? 'width:' + size + 'px;height:' + size + 'px' : '');
-    return '<span class="art" style="' + st + '"><svg viewBox="0 0 200 200" aria-hidden="true">' + (ART[p.art] ? ART[p.art](u) : '') + '</svg></span>';
+    const ph = (window.DATA.photos || {})[p.id];
+    return '<span class="art" style="' + st + '"><svg viewBox="0 0 200 200" aria-hidden="true">' + (ART[p.art] ? ART[p.art](u) : '') + '</svg>' + (ph ? '<img class="photo" src="' + ph + '" alt="" onload="this.previousElementSibling.style.display=\'none\'" onerror="this.remove()">' : '') + '</span>';
   }
   const colorList = p => (p.colors || []);
 
