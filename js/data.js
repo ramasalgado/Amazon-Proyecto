@@ -28,7 +28,21 @@ window.DATA = {
     { id: 'p5', colors: [{ n: 'Negro', h: '#262b33' }, { n: 'Azul', h: '#2f5fa8' }], title: 'Batería portátil Anker PowerCore 10000', short: 'Anker PowerCore 10000', price: 34999, rating: 4.7, reviews: 18652, cat: 'Tecnología', art: 'powerbank', tint: '#EAEFF5',
       bullets: ['10.000 mAh: carga un celular hasta 2 veces', 'Salida de 12 W con tecnología PowerIQ', 'Entrada micro-USB y salida USB-A', 'Liviana: 180 g, entra en el bolsillo'] },
     { id: 'p6', title: 'Cuaderno universitario Rivadavia ABC, pack x3', short: 'Cuadernos Rivadavia ABC x3', price: 14999, rating: 4.7, reviews: 1389, cat: 'Facultad', art: 'notebook', tint: '#F4F0E6',
-      bullets: ['Pack de 3 cuadernos con tapa dura', '84 hojas rayadas por cuaderno', 'Espiralados, tamaño 16 × 21 cm', 'Papel apto para birome y resaltador'] }
+      bullets: ['Pack de 3 cuadernos con tapa dura', '84 hojas rayadas por cuaderno', 'Espiralados, tamaño 16 × 21 cm', 'Papel apto para birome y resaltador'] },
+    { id: 'p7', colors: [{ n: 'Negro', h: '#262a31' }, { n: 'Gris', h: '#8a8f98' }, { n: 'Azul', h: '#2f5fa8' }], title: 'Zapatillas Nike Revolution 7 para hombre', short: 'Zapatillas Nike Revolution 7', price: 119999, rating: 4.5, reviews: 5762, cat: 'Ropa', art: 'sneaker', tint: '#EFEFF2',
+      bullets: ['Capellada de malla liviana y transpirable', 'Mediasuela de espuma con amortiguación suave', 'Suela de goma con buena tracción', 'Para correr y para todos los días'] },
+    { id: 'p8', colors: [{ n: 'Verde', h: '#2e5a45' }, { n: 'Negro', h: '#2a2d33' }, { n: 'Azul', h: '#2f5fa8' }], title: 'Termo Stanley Classic 1 L', short: 'Termo Stanley Classic 1 L', price: 189999, rating: 4.8, reviews: 8421, cat: 'Accesorios', art: 'thermos', tint: '#EEF1EE',
+      bullets: ['Acero inoxidable 18/8 libre de BPA', 'Doble pared aislada al vacío: conserva frío y calor', 'La tapa funciona como vaso', 'Capacidad de 1 litro, con asa integrada'] },
+    { id: 'p9', colors: [{ n: 'Negro', h: '#1b1f26' }, { n: 'Blanco', h: '#d9dce1' }], title: 'Teclado mecánico Redragon Kumara K552 retroiluminado', short: 'Teclado Redragon Kumara K552', price: 64999, rating: 4.6, reviews: 15210, cat: 'Tecnología', art: 'keyboard', tint: '#EDEEF2',
+      bullets: ['Switches mecánicos Outemu', 'Formato compacto sin teclado numérico (87 teclas)', 'Retroiluminación LED', 'Cable USB y construcción metálica reforzada'] },
+    { id: 'p10', colors: [{ n: 'Azul', h: '#2f5fa8' }, { n: 'Negro', h: '#262b33' }, { n: 'Naranja', h: '#f08a00' }], title: 'Parlante Bluetooth portátil JBL Go 3', short: 'Parlante JBL Go 3', price: 59999, rating: 4.7, reviews: 22340, cat: 'Tecnología', art: 'speaker', tint: '#ECEFF4',
+      bullets: ['Bluetooth con sonido JBL Pro', 'Hasta 5 horas de reproducción', 'Resistente al agua y al polvo (IP67)', 'Tan chico que entra en el bolsillo'] },
+    { id: 'p11', colors: [{ n: 'Negro', h: '#2d333c' }], title: 'Calculadora científica Casio fx-82LA Plus 2nd Edition', short: 'Calculadora Casio fx-82LA Plus', price: 27999, rating: 4.8, reviews: 6190, cat: 'Facultad', art: 'calculator', tint: '#F1F0EB',
+      bullets: ['252 funciones', 'Pantalla Natural Display de 2 líneas', 'Alimentación solar y a pila', 'Muy usada en facultades y exámenes'] },
+    { id: 'p12', colors: [{ n: 'Negro', h: '#262b33' }, { n: 'Azul', h: '#2f5fa8' }], title: 'Pendrive Kingston DataTraveler Exodia 64 GB USB 3.2', short: 'Pendrive Kingston 64 GB', price: 11999, rating: 4.7, reviews: 11870, cat: 'Facultad', art: 'usb', tint: '#EDF0F4',
+      bullets: ['USB 3.2 de primera generación', 'Capacidad de 64 GB', 'Tapa protectora con anillo para llavero', 'Compatible con Windows, macOS y Linux'] },
+    { id: 'p13', title: 'Resaltadores Stabilo Boss Original, pack x4 colores', short: 'Resaltadores Stabilo Boss x4', price: 13999, rating: 4.8, reviews: 2750, cat: 'Facultad', art: 'markers', tint: '#F5F3E8',
+      bullets: ['Pack de 4 colores fluorescentes', 'Punta biselada para trazo fino o grueso', 'Tinta de colores intensos', 'Cuerpo con clip en la tapa'] }
   ],
   /* Fotos reales opcionales: copiá la imagen a assets/products/ y declarala acá, por ejemplo:
      photos: { p1: 'assets/products/p1.jpg', p2: 'assets/products/p2.jpg' }

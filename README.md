@@ -24,5 +24,5 @@ Todo es ficticio. Código de retiro válido: `123456`. El QR es un patrón de pr
 - Animaciones: entrada escalonada de listas, confeti al confirmar compra y retiro, check animado, camión en tránsito, campana, QR con escaneo, pulso en el mapa. Respetan "reducir movimiento".
 - "Cómo llegar" ahora es una pantalla de navegación a pie **dentro del celular** (ruta, pasos, recorrido simulado y llegada). Queda un link secundario para abrir la app de Google Maps.
 - Categorías de Buscar abren su propia pantalla, con flecha atrás arriba a la izquierda.
-- Catálogo con productos reales (Sony WH-CH520, Logitech M590, Targus Classic, adidas Essentials, Anker PowerCore 10000, Rivadavia ABC) y renders con materiales.
+- Catálogo de 13 productos reales (Sony WH-CH520, Logitech M590, Targus Classic, adidas Essentials, Anker PowerCore 10000, Rivadavia ABC, Nike Revolution 7, Stanley Classic 1 L, Redragon Kumara K552, JBL Go 3, Casio fx-82LA, Kingston DataTraveler, Stabilo Boss) y renders con materiales.
 - Fotos reales opcionales: copiá la imagen en `assets/products/` y declarala en `photos` dentro de `js/data.js`.
