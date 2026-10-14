@@ -26,3 +26,12 @@ Todo es ficticio. Código de retiro válido: `123456`. El QR es un patrón de pr
 - Categorías de Buscar abren su propia pantalla, con flecha atrás arriba a la izquierda.
 - Catálogo de 13 productos reales (Sony WH-CH520, Logitech M590, Targus Classic, adidas Essentials, Anker PowerCore 10000, Rivadavia ABC, Nike Revolution 7, Stanley Classic 1 L, Redragon Kumara K552, JBL Go 3, Casio fx-82LA, Kingston DataTraveler, Stabilo Boss) y renders con materiales.
 - Fotos reales opcionales: copiá la imagen en `assets/products/` y declarala en `photos` dentro de `js/data.js`.
+
+## Publicarlo con un link (sin build)
+Es un sitio estático: la raíz del repo ya es el sitio (`index.html`).
+
+**Netlify (arrastrando)**: entrá a https://app.netlify.com/drop y soltá `amazon-hub-locker-prototipo.zip` (o la carpeta del proyecto). Te da un link `https://<nombre>.netlify.app`.
+
+**Netlify (desde GitHub)**: *Add new site → Import an existing project → GitHub →* elegí este repo y la rama `claude/functional-web-prototype-enzx5o`. Deja el build command vacío y el publish directory en `.` (ya lo define `netlify.toml`).
+
+**GitHub Pages**: *Settings → Pages → Build and deployment → Deploy from a branch →* rama `claude/functional-web-prototype-enzx5o`, carpeta `/ (root)`. El link queda `https://ramasalgado.github.io/Amazon-Proyecto/`.
