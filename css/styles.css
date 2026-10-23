@@ -667,3 +667,11 @@ a.btn { text-decoration: none; }
 .st-ready .tm-ic, .st-pickedUp .tm-ic, .st-delivered .tm-ic, .st-atLocker .tm-ic { background: var(--success-tint); color: var(--success); }
 .tm-card div { flex: 1; min-width: 0; display: flex; flex-direction: column; } .tm-card strong { font-size: 15px; } .tm-card div span { color: var(--ink-2); font-size: 13px; }
 .tm-card b { font-size: 15px; color: var(--link); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* El camión frena en la base de reparto */
+.hub-ring { fill: none; stroke: var(--orange); stroke-width: 3; opacity: 0; }
+.hub-ring, .trk-ring { transform-box: fill-box; transform-origin: center; }
+.is-stop .hub-ring { opacity: 1; animation: hubring 1.2s ease-out infinite; }
+@keyframes hubring { 0% { transform: scale(.8); opacity: 1; } 100% { transform: scale(1.9); opacity: 0; } }
+.is-stop .trk-ring { animation: none; fill: rgba(245,158,11,.3); }
+.is-stop .tm-ic { background: var(--warning-tint); color: #B26A00; }

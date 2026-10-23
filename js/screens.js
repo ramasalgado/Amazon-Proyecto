@@ -407,7 +407,8 @@
   const HIGHWAY = [[-34.7900, -58.4760], [-34.7500, -58.4420], [-34.7050, -58.4380]]; // autopista hacia la Ciudad
   const PLACES = [['Ezeiza', -34.84, -58.52], ['Monte Grande', -34.80, -58.47], ['Lomas de Zamora', -34.76, -58.43], ['Lanús', -34.71, -58.40], ['Valentín Alsina', -34.67, -58.42]];
   const CABA = [[-34.535, -58.531], [-34.534, -58.455], [-34.575, -58.395], [-34.600, -58.360], [-34.655, -58.340], [-34.690, -58.395], [-34.705, -58.470], [-34.690, -58.531]];
-  const TRANSIT_MS = () => (S().auto === false ? 45000 : 11000);
+  const TRANSIT_MS = () => (S().auto === false ? 60000 : 15000);
+  const PH_A = .42, PH_B = .64; // fracción del tránsito: viaje hasta la base / parada / reparto en la Ciudad
   function trackGeo(o) {
     let dest;
     if (o.lockerId) { const l = locker(o.lockerId); dest = { lat: l.lat, lon: l.lon, name: l.name, short: l.name.length > 24 ? l.name.slice(0, 23) + '…' : l.name }; }
@@ -429,7 +430,15 @@
       caba: CABA.map(g => X(g[1]).toFixed(1) + ',' + Y(g[0]).toFixed(1)).join(' '),
       inv: (x, y) => ({ lon: cLon + (x - W / 2) / (91.4 * sc), lat: cLat - (y - cy) / (111 * sc) }) };
   }
-  const trackP = o => o.status === 'transit' ? Math.max(.04, Math.min(.97, (Date.now() - (o.times.transit || Date.now())) / TRANSIT_MS())) : (['confirmed', 'preparing'].indexOf(o.status) >= 0 ? 0 : 1);
+  const trackFrac = o => Math.max(0, Math.min(1, (Date.now() - (o.times.transit || Date.now())) / TRANSIT_MS()));
+  const trackStopped = o => { if (o.status !== 'transit') return false; const f = trackFrac(o); return f >= PH_A && f < PH_B; };
+  function trackP(o, g) {
+    if (o.status !== 'transit') return ['confirmed', 'preparing'].indexOf(o.status) >= 0 ? 0 : 1;
+    const f = trackFrac(o), h = (g || trackGeo(o)).hubP;
+    if (f < PH_A) return .03 + (h - .03) * (f / PH_A);        // viaja hasta la base de reparto
+    if (f < PH_B) return h;                                  // frena en la base de reparto
+    return h + (.97 - h) * ((f - PH_B) / (1 - PH_B));         // sigue hacia el locker
+  }
   function trackText(o, g) {
     const n = g.dest.name;
     return { confirmed: ['En el centro logístico de Ezeiza', 'Tu pedido ya está registrado y todavía no salió del depósito.', 'Hoy'],
@@ -441,12 +450,12 @@
       delivered: ['Pedido entregado', 'Lo dejamos en tu domicilio.', 'Entregado'] }[o.status];
   }
   function trackMap(o) {
-    const g = trackGeo(o), p = trackP(o), t = trackText(o, g), done = o.status === 'ready' || o.status === 'pickedUp', st = g.pts[0];
+    const g = trackGeo(o), p = trackP(o, g), t = trackText(o, g), done = o.status === 'ready' || o.status === 'pickedUp', st = g.pts[0];
     const trk = '<g id="trk" transform="translate(' + st[0].toFixed(1) + ' ' + st[1].toFixed(1) + ')"><circle class="trk-ring" r="20"/><circle r="15" fill="#131A22" stroke="#fff" stroke-width="3"/>' + ic('truck', 20).replace('<svg ', '<svg x="-10" y="-10" style="color:#fff" ') + '</g>';
     const pinCol = done ? '#16A34A' : '#FF9900', d = g.pts[g.pts.length - 1];
     const dest = '<g transform="translate(' + d[0].toFixed(1) + ' ' + d[1].toFixed(1) + ')"><path d="M0 0C-9 -9 -14 -15 -14 -22a14 14 0 0128 0c0 7-5 13-14 22z" fill="' + pinCol + '" stroke="#fff" stroke-width="2"/>' + ic(done ? 'check' : (o.lockerId ? C.typeIcon(locker(o.lockerId)) : 'house'), 16).replace('<svg ', '<svg x="-8" y="-30" style="color:#fff" ') + '<text y="14" text-anchor="middle" class="tm-lab">' + esc(g.dest.short) + '</text></g>';
     const dep = '<g transform="translate(' + st[0].toFixed(1) + ' ' + st[1].toFixed(1) + ')"><rect x="-13" y="-13" width="26" height="26" rx="8" fill="#fff" stroke="#131A22" stroke-width="2.500"/>' + ic('store', 16).replace('<svg ', '<svg x="-8" y="-8" style="color:#131A22" ') + '<text y="26" text-anchor="middle" class="tm-lab">Centro logístico · Ezeiza</text></g>';
-    const hub = '<g transform="translate(' + g.hub[0].toFixed(1) + ' ' + g.hub[1].toFixed(1) + ')"><rect x="-9" y="-9" width="18" height="18" rx="6" fill="#fff" stroke="#131A22" stroke-width="2"/>' + ic('box', 12).replace('<svg ', '<svg x="-6" y="-6" style="color:#131A22" ') + '<text x="14" y="4" class="tm-lab" text-anchor="start">Base de reparto</text></g>';
+    const hub = '<g class="tm-hub" transform="translate(' + g.hub[0].toFixed(1) + ' ' + g.hub[1].toFixed(1) + ')"><circle class="hub-ring" r="16"/><rect x="-9" y="-9" width="18" height="18" rx="6" fill="#fff" stroke="#131A22" stroke-width="2"/>' + ic('box', 12).replace('<svg ', '<svg x="-6" y="-6" style="color:#131A22" ') + '<text x="14" y="4" class="tm-lab" text-anchor="start">Base de reparto</text></g>';
     return '<div class="tmap st-' + o.status + '" id="tmap"><svg viewBox="0 0 ' + g.W + ' ' + g.H + '" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Recorrido del camión desde Ezeiza hasta ' + esc(g.dest.name) + '"><rect width="360" height="320" fill="#EDEFF2"/>' +
       '<polygon points="' + g.caba + '" fill="#F8F9FB" stroke="#9AA7B8" stroke-width="1.500" stroke-dasharray="4 3"/><text x="' + (g.pts[6][0] + 70).toFixed(0) + '" y="' + (g.pts[6][1] - 70).toFixed(0) + '" class="tm-city">CABA</text>' +
       '<path d="M360 40 L292 150 L360 190Z" fill="#DCE7F3"/>' +
@@ -454,7 +463,7 @@
       '<path id="trk-base" d="' + g.d + '" pathLength="1" fill="none" stroke="#9AA7B8" stroke-width="4.500" stroke-linecap="round" stroke-linejoin="round"/><path id="trk-done" d="' + g.d + '" pathLength="1" fill="none" stroke="#1D63C9" stroke-width="5.500" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="' + p.toFixed(3) + ' 1"/>' + dep + hub + dest + trk + '</svg>' +
       '<div class="tm-card"><span class="tm-ic">' + ic(o.status === 'preparing' ? 'box' : (done ? 'check' : 'truck'), 22) + '</span><div><strong id="tm-title">' + esc(t[0]) + '</strong><span id="tm-sub">' + esc(t[1]) + '</span></div><b id="tm-eta">' + esc(t[2]) + '</b></div></div>';
   }
-  window.TRACK = { geo: trackGeo, progress: trackP, places: PLACES };
+  window.TRACK = { geo: trackGeo, progress: trackP, stopped: trackStopped, places: PLACES };
 
   SC.tracking = {
     render(p) {
