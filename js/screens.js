@@ -401,13 +401,52 @@
     }
     return '';
   }
+  /* ---------- Mapa del recorrido del camión ---------- */
+  const DEPOT = { name: 'Centro logístico Amazon', lat: -34.6580, lon: -58.4330 };
+  const TRANSIT_MS = () => (S().auto === false ? 45000 : 11000);
+  function trackGeo(o) {
+    let dest;
+    if (o.lockerId) { const l = locker(o.lockerId); dest = { lat: l.lat, lon: l.lon, name: l.name, short: l.name.length > 24 ? l.name.slice(0, 23) + '…' : l.name }; }
+    else { const b = C.barrio(); dest = { lat: b.lat + .0012, lon: b.lon - .0015, name: 'Tu domicilio', short: 'Tu domicilio' }; }
+    const W = 360, H = 250, pad = 48, mLat = (DEPOT.lat + dest.lat) / 2, mLon = (DEPOT.lon + dest.lon) / 2;
+    const wKm = Math.max(.9, Math.abs(dest.lon - DEPOT.lon) * 91.4), hKm = Math.max(.9, Math.abs(dest.lat - DEPOT.lat) * 111), sc = Math.min((W - 2 * pad) / wKm, (H - 2 * pad) / hKm);
+    const X = lon => W / 2 + (lon - mLon) * 91.4 * sc, Y = lat => H / 2 - (lat - mLat) * 111 * sc;
+    const x0 = X(DEPOT.lon), y0 = Y(DEPOT.lat), x1 = X(dest.lon), y1 = Y(dest.lat), ym = y0 + (y1 - y0) * .45;
+    return { W, H, dest, x0, y0, x1, y1, km: C.distKm(DEPOT.lat, DEPOT.lon, dest.lat, dest.lon) * 1.25,
+      d: 'M' + x0.toFixed(1) + ' ' + y0.toFixed(1) + 'V' + ym.toFixed(1) + 'H' + x1.toFixed(1) + 'V' + y1.toFixed(1),
+      inv: (x, y) => ({ lon: mLon + (x - W / 2) / (91.4 * sc), lat: mLat - (y - H / 2) / (111 * sc) }) };
+  }
+  const trackP = o => o.status === 'transit' ? Math.max(.05, Math.min(.96, (Date.now() - (o.times.transit || Date.now())) / TRANSIT_MS())) : (['confirmed', 'preparing'].indexOf(o.status) >= 0 ? 0 : 1);
+  function trackText(o, g) {
+    const n = g.dest.name;
+    return { confirmed: ['En el centro logístico', 'Tu pedido ya está registrado y todavía no salió del depósito.', 'Hoy'],
+      preparing: ['Cargando el camión', 'Estamos acomodando tu pedido en el camión de reparto.', 'En breve'],
+      transit: ['En camino', 'Saliendo del centro logístico…', ''],
+      atLocker: ['El camión ya llegó', o.lockerId ? 'Dejó tu pedido en ' + n + '.' : 'Está en la puerta de tu domicilio.', 'Llegó'],
+      ready: ['Tu pedido está en el locker', 'Está guardado y listo para que lo retires.', 'Listo'],
+      pickedUp: ['Pedido retirado', 'Lo retiraste de ' + n + '.', 'Retirado'],
+      delivered: ['Pedido entregado', 'Lo dejamos en tu domicilio.', 'Entregado'] }[o.status];
+  }
+  function trackMap(o) {
+    const g = trackGeo(o), p = trackP(o), t = trackText(o, g), done = o.status === 'ready' || o.status === 'pickedUp';
+    const trk = '<g id="trk" transform="translate(' + g.x0.toFixed(1) + ' ' + g.y0.toFixed(1) + ')"><circle class="trk-ring" r="20"/><circle r="15" fill="#131A22" stroke="#fff" stroke-width="3"/>' + ic('truck', 20).replace('<svg ', '<svg x="-10" y="-10" style="color:#fff" ') + '</g>';
+    const pinCol = done ? '#16A34A' : '#FF9900';
+    const dest = '<g transform="translate(' + g.x1.toFixed(1) + ' ' + g.y1.toFixed(1) + ')"><path d="M0 0C-9 -9 -14 -15 -14 -22a14 14 0 0128 0c0 7-5 13-14 22z" fill="' + pinCol + '" stroke="#fff" stroke-width="2"/>' + ic(done ? 'check' : (o.lockerId ? C.typeIcon(locker(o.lockerId)) : 'house'), 16).replace('<svg ', '<svg x="-8" y="-30" style="color:#fff" ') + '<text y="14" text-anchor="middle" class="tm-lab">' + esc(g.dest.short) + '</text></g>';
+    const dep = '<g transform="translate(' + g.x0.toFixed(1) + ' ' + g.y0.toFixed(1) + ')"><rect x="-13" y="-13" width="26" height="26" rx="8" fill="#fff" stroke="#131A22" stroke-width="2.500"/>' + ic('store', 16).replace('<svg ', '<svg x="-8" y="-8" style="color:#131A22" ') + '<text y="-20" text-anchor="middle" class="tm-lab">Centro logístico</text></g>';
+    return '<div class="tmap st-' + o.status + '" id="tmap" data-p="' + p.toFixed(3) + '"><svg viewBox="0 0 ' + g.W + ' ' + g.H + '" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Recorrido del camión desde el centro logístico hasta ' + esc(g.dest.name) + '"><rect width="360" height="250" fill="#EDEFF2"/><path d="M0 200 Q90 170 170 196 T360 176 V250 H0Z" fill="#DCE7F3"/><rect x="250" y="20" width="84" height="56" rx="12" fill="#D5EBD2"/><rect x="18" y="150" width="60" height="46" rx="12" fill="#D5EBD2"/>' +
+      '<g stroke="#fff" stroke-width="10" fill="none" stroke-linecap="round"><path d="M-10 60H380M-10 130H380M-10 200H380M60 -10V260M150 -10V260M240 -10V260M320 -10V260"/></g><g stroke="#fff" stroke-width="4" fill="none"><path d="M-10 95H380M-10 165H380M105 -10V260M195 -10V260M280 -10V260"/></g>' +
+      '<path id="trk-base" d="' + g.d + '" pathLength="1" fill="none" stroke="#9AA7B8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 0"/><path id="trk-done" d="' + g.d + '" pathLength="1" fill="none" stroke="#1D63C9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="' + p.toFixed(3) + ' 1"/>' + dep + dest + trk + '</svg>' +
+      '<div class="tm-card"><span class="tm-ic">' + ic(o.status === 'preparing' ? 'box' : (done ? 'check' : 'truck'), 22) + '</span><div><strong id="tm-title">' + esc(t[0]) + '</strong><span id="tm-sub">' + esc(t[1]) + '</span></div><b id="tm-eta">' + esc(t[2]) + '</b></div></div>';
+  }
+  window.TRACK = { geo: trackGeo, progress: trackP };
+
   SC.tracking = {
     render(p) {
       const o = S().orders.find(x => x.id === p.id);
       if (o.status === 'ready' && !o._seen) { o._seen = true; }
       const l = o.lockerId ? locker(o.lockerId) : null;
       const body = '<div class="pad-x"><div class="track-prod">' + UI.art(product(o.items[0].pid), 56, o.items[0].color) + '<div><strong>' + esc(itemsTitle(o)) + '</strong><span class="price">' + money(o.total) + '</span></div></div>' +
-        trackHero(o) + '<h3 class="sub-h">Estado del pedido</h3>' + timeline(o) +
+        trackHero(o) + (o.cancelled ? '' : '<h3 class="sub-h">Dónde está tu pedido</h3>' + trackMap(o)) + '<h3 class="sub-h">Estado del pedido</h3>' + timeline(o) +
         (l ? '<h3 class="sub-h">Retiro</h3><button type="button" class="lcard flat" data-act="lockerFromOrder" data-id="' + o.id + '">' + UI.lockerThumb(l) + '<span class="lbody"><strong>' + esc(lockerName(l)) + '</strong><span class="lsub">' + esc(l.address) + '</span><span class="lsub">' + esc(l.hours) + '</span></span>' + ic('chevR', 22, 'lchev') + '</button>' : '') +
         '<button type="button" class="link spaced" data-act="orderDetails" data-id="' + o.id + '">Detalles del pedido</button><button type="button" class="link spaced" data-act="support">¿Necesitás ayuda con este pedido?</button></div><div class="sp-lg"></div>';
       return UI.page({ header: UI.hdr({ title: 'Seguimiento del pedido', right: [UI.bellBtn()] }), body });

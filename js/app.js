@@ -14,7 +14,7 @@
   const scrollMem = {};
   function render(o) {
     o = o || {};
-    timers.splice(0).forEach(clearTimeout); if (window.NAVRAF) cancelAnimationFrame(window.NAVRAF);
+    timers.splice(0).forEach(clearTimeout); if (window.NAVRAF) cancelAnimationFrame(window.NAVRAF); if (window.TRKRAF) cancelAnimationFrame(window.TRKRAF);
     if (!o.keep) { UI.closeSheet(true); UI.closeModal(); }
     const cur = R.cur();
     const AUTH = ['welcome', 'login', 'register'];
@@ -30,6 +30,7 @@
     if (content) content.scrollTop = o.keep ? keepTop : (R.dir === 'back' ? (scrollMem[S().nav.length] || 0) : 0);
     R.dir = 'none';
     if (!o.keep) mount(name, cur.params || {});
+    if (name === 'tracking') startTruck(orderOf((cur.params || {}).id));
     else if (name === 'manualCode') { const i = $('#codein'); if (i) i.focus(); }
     refreshBadges();
     if (window.FAC) window.FAC.refresh();
@@ -66,6 +67,29 @@
   }
 
   /* ---------- Navegación de checkout ---------- */
+  /* ---------- Camión en el mapa del seguimiento ---------- */
+  function startTruck(o) {
+    const base = $('#trk-base'), done = $('#trk-done'), trk = $('#trk');
+    if (!o || !base || !trk) return;
+    const g = window.TRACK.geo(o), len = base.getTotalLength();
+    const set = p => {
+      const pt = base.getPointAtLength(p * len);
+      trk.setAttribute('transform', 'translate(' + pt.x.toFixed(1) + ' ' + pt.y.toFixed(1) + ')');
+      done.setAttribute('stroke-dasharray', p.toFixed(3) + ' 1');
+      if (o.status !== 'transit') return;
+      const ll = g.inv(pt.x, pt.y);
+      let near = D.barrios[0], best = 1e9; D.barrios.forEach(b => { const d = C.distKm(ll.lat, ll.lon, b.lat, b.lon); if (d < best) { best = d; near = b; } });
+      const rest = Math.max(0.1, Math.round(g.km * (1 - p) * 10) / 10), eta = Math.max(1, Math.round(g.km * (1 - p) * 3.5));
+      const t = $('#tm-title'), s2 = $('#tm-sub'), e = $('#tm-eta');
+      if (t) t.textContent = 'En camino · pasando por ' + near.n;
+      if (s2) s2.textContent = 'A ' + km(rest) + ' de ' + (o.lockerId ? 'tu locker' : 'tu domicilio');
+      if (e) e.textContent = '~' + eta + ' min';
+    };
+    if (o.status !== 'transit') { set(window.TRACK.progress(o)); return; }
+    const tick = () => { if (!$('#trk')) return; set(window.TRACK.progress(o)); window.TRKRAF = requestAnimationFrame(tick); };
+    tick();
+  }
+
   function resetLs(mode) {
     L.ls = { q: '', type: 'all', quick: null, view: 'list', maxKm: null, all: false, limit: 12, onlyAvail: false, late: false, loading: true, sel: null, mode };
   }
@@ -548,7 +572,7 @@
     if (S().auto === false || !S().loggedIn) return;
     const o = FAC.activeOrder();
     if (!o || o.status === 'ready') return;
-    if (Date.now() - (o.times[o.status] || o.createdAt) < AUTO_MS) return;
+    if (Date.now() - (o.times[o.status] || o.createdAt) < (o.status === 'transit' ? 11000 : AUTO_MS)) return;
     if (!C.advanceOrder(o)) return;
     if (['home', 'orders', 'tracking', 'lockerTab'].indexOf(R.cur().name) >= 0) rerender(); else { refreshBadges(); FAC.refresh(); }
   }, 1000);

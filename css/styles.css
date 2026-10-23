@@ -652,3 +652,17 @@ a.btn { text-decoration: none; }
 .zrow:active { background: var(--gray-50); }
 .map-none { position: absolute; left: 20px; right: 20px; top: 40%; background: rgba(255,255,255,.96); padding: 14px; border-radius: var(--r-md); text-align: center; font-size: 14px; color: var(--ink-2); box-shadow: var(--sh-1); }
 .map-legend { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ---------- Mapa del recorrido (seguimiento) ---------- */
+.tmap { position: relative; border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--gray); box-shadow: var(--sh-1); background: #edeff2; }
+.tmap > svg { display: block; width: 100%; height: 230px; }
+.tm-lab { font: 700 10px Arial, sans-serif; fill: #131A22; paint-order: stroke; stroke: #fff; stroke-width: 3.500px; stroke-linejoin: round; }
+.trk-ring { fill: rgba(29,99,201,.22); animation: trkring 1.6s ease-out infinite; transform-origin: center; }
+@keyframes trkring { 0% { transform: scale(.7); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+.st-ready #trk, .st-pickedUp #trk { display: none; }
+.st-atLocker .trk-ring, .st-delivered .trk-ring, .st-confirmed .trk-ring { animation: none; opacity: 0; }
+.tm-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #fff; border-top: 1px solid var(--gray); }
+.tm-ic { width: 40px; height: 40px; border-radius: 12px; background: var(--info-tint); color: var(--info); display: grid; place-items: center; flex: none; }
+.st-ready .tm-ic, .st-pickedUp .tm-ic, .st-delivered .tm-ic, .st-atLocker .tm-ic { background: var(--success-tint); color: var(--success); }
+.tm-card div { flex: 1; min-width: 0; display: flex; flex-direction: column; } .tm-card strong { font-size: 15px; } .tm-card div span { color: var(--ink-2); font-size: 13px; }
+.tm-card b { font-size: 15px; color: var(--link); white-space: nowrap; font-variant-numeric: tabular-nums; }
