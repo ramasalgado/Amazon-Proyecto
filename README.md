@@ -35,3 +35,4 @@ Es un sitio estático: la raíz del repo ya es el sitio (`index.html`).
 **Netlify (desde GitHub)**: *Add new site → Import an existing project → GitHub →* elegí este repo y la rama `claude/functional-web-prototype-enzx5o`. Deja el build command vacío y el publish directory en `.` (ya lo define `netlify.toml`).
 
 **GitHub Pages**: *Settings → Pages → Build and deployment → Deploy from a branch →* rama `claude/functional-web-prototype-enzx5o`, carpeta `/ (root)`. El link queda `https://ramasalgado.github.io/Amazon-Proyecto/`.
+- **Lockers en toda la Ciudad**: 48 barrios de CABA y 119 lockers. En "Seleccionar locker" (y en la pestaña Locker) se elige el barrio con "Estás en … Cambiar" o "Usar mi ubicación"; las distancias, la lista y el mapa se recalculan desde ese barrio. Los barrios son aproximados; los comercios, direcciones y disponibilidad son ilustrativos.

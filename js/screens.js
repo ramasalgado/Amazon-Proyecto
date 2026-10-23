@@ -206,11 +206,15 @@
   /* ============================================================
      BUSCAR LOCKERS (lista + mapa)
      ============================================================ */
+  const RADIUS = 4; // km: zona "cerca de vos" por defecto
+  const TYPES = { facultades: ['facultad'], supers: ['super'], otros: ['estacion', 'shopping'] };
+  const typeWords = l => ({ facultad: 'facultad universidad', super: 'supermercado super', estacion: 'estacion subte tren', shopping: 'shopping centro comercial' }[l.type]);
   function filterLockers() {
-    const f = L.ls; let list = D.lockers.slice().sort((a, b) => a.km - b.km);
-    if (f.type !== 'all') list = list.filter(l => l.type === (f.type === 'facultades' ? 'facultad' : 'super'));
+    const f = L.ls; let list = D.lockers.slice().sort((a, b) => a.km - b.km || a.name.localeCompare(b.name));
+    if (f.type !== 'all') list = list.filter(l => TYPES[f.type].indexOf(l.type) >= 0);
     const q = norm(f.q.trim());
-    if (q) list = list.filter(l => norm(l.name + ' ' + l.address + ' ' + l.barrio + ' ' + l.cp + ' ' + (l.type === 'super' ? 'supermercado super' : 'facultad universidad')).indexOf(q) >= 0);
+    if (q) list = list.filter(l => norm(l.name + ' ' + l.address + ' ' + l.barrio + ' ' + (l.cp || '') + ' ' + typeWords(l)).indexOf(q) >= 0);
+    else if (!f.all && !f.maxKm) list = list.filter(l => l.km <= RADIUS);
     if (f.quick === 'near') list = list.filter(l => l.km <= 1.5);
     if (f.quick === 'avail') list.sort((a, b) => b.free - a.free);
     if (f.maxKm) list = list.filter(l => l.km <= f.maxKm);
@@ -218,30 +222,41 @@
     if (f.late) list = list.filter(l => /(22|23):00$/.test(l.hours));
     return list;
   }
-  const extraFilters = () => (L.ls.maxKm ? 1 : 0) + (L.ls.onlyAvail ? 1 : 0) + (L.ls.late ? 1 : 0);
+  const extraFilters = () => (L.ls.maxKm ? 1 : 0) + (L.ls.all ? 1 : 0) + (L.ls.onlyAvail ? 1 : 0) + (L.ls.late ? 1 : 0);
+  /* Mapa centrado en el barrio elegido: ventana de ~4,4 × 5,3 km */
+  const MAP_W = 4.4, MAP_H = 5.3;
+  const proj = l => { const b = C.barrio(); return { x: 50 + (l.lon - b.lon) * 91.4 / MAP_W * 100, y: 50 - (l.lat - b.lat) * 111 / MAP_H * 100 }; };
   function mapHtml(list) {
-    const pins = list.map(l => '<button type="button" class="pin' + (L.ls.sel === l.id ? ' on' : '') + (l.status === 'full' ? ' full' : '') + '" style="left:' + l.x + '%;top:' + l.y + '%" data-act="pickPin" data-id="' + l.id + '" aria-label="' + esc(lockerName(l)) + ', a ' + km(l.km) + '">' + '<svg viewBox="0 0 40 50" width="38" height="48"><path d="M20 48C8 36 3 28 3 19a17 17 0 0134 0c0 9-5 17-17 29z"/></svg><span>' + ic(l.type === 'super' ? 'cart' : 'cap', 16) + '</span></button>').join('');
+    const b = C.barrio();
+    const vis = list.map(l => Object.assign({ l }, proj(l))).filter(o => o.x > 5 && o.x < 95 && o.y > 8 && o.y < 90);
+    const pins = vis.map(o => '<button type="button" class="pin' + (L.ls.sel === o.l.id ? ' on' : '') + (o.l.status === 'full' ? ' full' : '') + '" style="left:' + o.x.toFixed(1) + '%;top:' + o.y.toFixed(1) + '%" data-act="pickPin" data-id="' + o.l.id + '" aria-label="' + esc(lockerName(o.l)) + ', a ' + km(o.l.km) + '">' + '<svg viewBox="0 0 40 50" width="38" height="48"><path d="M20 48C8 36 3 28 3 19a17 17 0 0134 0c0 9-5 17-17 29z"/></svg><span>' + ic(C.typeIcon(o.l), 16) + '</span></button>').join('');
     const sel = list.find(l => l.id === L.ls.sel);
     return '<div class="map"><svg class="map-bg" viewBox="0 0 360 340" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="360" height="340" fill="#EDEFF2"/><path d="M0 250 L120 210 L200 262 L360 190 V340 H0Z" fill="#E4E8EE"/><rect x="236" y="38" width="86" height="64" rx="14" fill="#D5EBD2"/><rect x="26" y="226" width="64" height="54" rx="12" fill="#D5EBD2"/><g stroke="#fff" stroke-width="9" stroke-linecap="round" fill="none"><path d="M-10 78H380M-10 168H380M-10 262H380M70 -10V350M170 -10V350M262 -10V350"/></g><g stroke="#fff" stroke-width="4" fill="none"><path d="M-10 124H380M-10 214H380M120 -10V350M216 -10V350M310 -10V350"/></g><path d="M-10 300 Q120 270 200 292 T380 270" stroke="#fff" stroke-width="12" fill="none"/></svg>' +
-      '<span class="me" style="left:46%;top:52%"><i></i></span>' + pins +
-      '<div class="map-legend">Estás cerca de Av. Principal 123</div>' +
+      '<span class="me" style="left:50%;top:50%"><i></i></span>' + pins +
+      '<div class="map-legend">' + ic('pin', 14) + 'Mapa de ' + esc(b.n) + ' · ' + vis.length + (vis.length === 1 ? ' locker' : ' lockers') + '</div>' +
+      (vis.length ? '' : '<div class="map-none">No hay lockers en esta parte del mapa. Probá con la lista o cambiá de barrio.</div>') +
       (sel ? '<div class="map-sheet">' + UI.lockerRow(sel) + '</div>' : '') + '</div>';
   }
   function lockerResults() {
-    const f = L.ls, list = filterLockers();
+    const f = L.ls, list = filterLockers(), b = C.barrio();
     if (f.loading) return '<div class="pad-x">' + '<div class="skel-row"></div>'.repeat(4) + '</div>';
     if (!list.length) {
-      return UI.emptyState({ icon: 'pin', title: 'No encontramos lockers por ahí.', body: 'Probá con otra dirección o código postal, o sacá algún filtro.', cta: UI.btn('Quitar filtros', 'clearLockerFilters', { kind: 'secondary', block: false }) });
+      const far = !f.q && !f.all && !f.maxKm;
+      return UI.emptyState({ icon: 'pin', title: far ? 'Todavía no hay lockers cerca de ' + b.n + '.' : 'No encontramos lockers por ahí.', body: far ? 'Ampliá la búsqueda para ver los lockers de toda la Ciudad.' : 'Probá con otro barrio, calle o lugar, o sacá algún filtro.', cta: far ? UI.btn('Ver toda la Ciudad', 'fAll', { kind: 'secondary', block: false }) : UI.btn('Quitar filtros', 'clearLockerFilters', { kind: 'secondary', block: false }) });
     }
     if (f.view === 'map') return mapHtml(list);
-    return '<div class="pad-x"><p class="muted rescount">' + list.length + (list.length === 1 ? ' locker' : ' lockers') + ' cerca de Av. Principal 123</p><div class="lstack">' + list.map(l => UI.lockerRow(l, { hours: false })).join('') + '</div></div>' +
+    const shown = list.slice(0, f.limit || 12), more = list.length - shown.length;
+    const where = f.q ? 'para “' + esc(f.q.trim()) + '”' : (f.all ? 'en toda la Ciudad' : 'cerca de ' + esc(b.n));
+    return '<div class="pad-x"><p class="muted rescount">' + list.length + (list.length === 1 ? ' locker ' : ' lockers ') + where + '</p><div class="lstack">' + shown.map(l => UI.lockerRow(l, { barrio: true })).join('') + '</div></div>' +
+      (more > 0 ? '<button type="button" class="maplink" data-act="moreLockers">Ver ' + Math.min(12, more) + ' más (' + more + ' restantes)</button>' : '') +
       '<button type="button" class="maplink" data-act="setView" data-v="map">' + ic('map', 20) + 'Ver en el mapa</button>';
   }
   SC.lockerSearch = {
     render(p) {
       const f = L.ls;
-      const extra = '<div class="lsearch"><label class="searchbar light">' + ic('search', 20) + '<input id="lq" type="search" placeholder="Buscar por dirección, lugar o código postal" value="' + esc(f.q) + '" autocomplete="off"><button type="button" class="x" data-act="clearLq" aria-label="Borrar búsqueda"' + (f.q ? '' : ' hidden') + '>' + ic('close', 18) + '</button></label></div>';
-      const chips = '<div class="chips scroll" role="group" aria-label="Tipo de lugar">' + [['all', 'Todos'], ['facultades', 'Facultades'], ['supers', 'Supermercados']].map(c => UI.chip(c[1], 'lockerType', f.type === c[0], { v: c[0] })).join('') + '</div>' +
+      const b = C.barrio();
+      const extra = '<button type="button" class="locbar" data-act="chooseZone" aria-label="Cambiar de barrio">' + ic('pin', 18) + '<span>Estás en <b>' + esc(b.n) + '</b>, CABA</span><em>Cambiar</em>' + ic('chevD', 16) + '</button><div class="lsearch"><label class="searchbar light">' + ic('search', 20) + '<input id="lq" type="search" placeholder="Buscar por barrio, dirección o lugar" value="' + esc(f.q) + '" autocomplete="off"><button type="button" class="x" data-act="clearLq" aria-label="Borrar búsqueda"' + (f.q ? '' : ' hidden') + '>' + ic('close', 18) + '</button></label></div>';
+      const chips = '<div class="chips scroll" role="group" aria-label="Tipo de lugar">' + [['all', 'Todos'], ['facultades', 'Facultades'], ['supers', 'Supermercados'], ['otros', 'Otros']].map(c => UI.chip(c[1], 'lockerType', f.type === c[0], { v: c[0] })).join('') + '</div>' +
         '<div class="chips scroll sm" role="group" aria-label="Filtros rápidos">' + UI.chip('Cercanos', 'lockerQuick', f.quick === 'near', { v: 'near' }, 'pin') + UI.chip('Más disponibles', 'lockerQuick', f.quick === 'avail', { v: 'avail' }, 'clock') + UI.chip('Más filtros' + (extraFilters() ? ' (' + extraFilters() + ')' : ''), 'moreFilters', extraFilters() > 0, null, 'sliders') + '</div>' +
         '<div class="seg" role="tablist"><button type="button" role="tab" aria-selected="' + (f.view === 'list') + '" class="' + (f.view === 'list' ? 'on' : '') + '" data-act="setView" data-v="list">' + ic('list', 18) + 'Lista</button><button type="button" role="tab" aria-selected="' + (f.view === 'map') + '" class="' + (f.view === 'map' ? 'on' : '') + '" data-act="setView" data-v="map">' + ic('map', 18) + 'Mapa</button></div>';
       const title = p.mode === 'browse' ? 'Lockers cercanos' : 'Seleccionar locker';
@@ -453,14 +468,14 @@
 
   SC.mapNav = {
     render(p) {
-      const l = locker(p.id), o = p.orderId ? S().orders.find(x => x.id === p.orderId) : null, steps = [['Salí por Av. Principal', 'Seguí derecho 2 cuadras · 180 m'], ['Girá a la derecha', 'Caminá 1 cuadra hasta la esquina · 120 m'], ['Llegás al locker', l.where]];
+      const l = locker(p.id), mins = Math.max(1, Math.round(l.km * 12)), o = p.orderId ? S().orders.find(x => x.id === p.orderId) : null, steps = [['Salí caminando por la avenida', 'Seguí derecho ' + Math.max(1, Math.round(l.km * 6)) + ' cuadras'], ['Girá a la derecha', 'Caminá hasta la esquina siguiente'], ['Llegás al locker', l.where]];
       const map = '<div class="nav-map" id="navmap"><svg class="map-bg" viewBox="0 0 360 440" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="360" height="440" fill="#EDEFF2"/><rect x="226" y="40" width="96" height="70" rx="14" fill="#D5EBD2"/><rect x="20" y="300" width="70" height="60" rx="12" fill="#D5EBD2"/><path d="M0 390 Q120 350 210 380 T360 350 V440 H0Z" fill="#DCE7F3"/>' +
         '<g stroke="#fff" stroke-width="11" fill="none" stroke-linecap="round"><path d="M-10 90H380M-10 190H380M-10 290H380M70 -10V450M190 -10V450M300 -10V450"/></g><g stroke="#fff" stroke-width="4" fill="none"><path d="M-10 140H380M-10 240H380M-10 340H380M130 -10V450M250 -10V450"/></g>' +
         '<g font-family="Arial,sans-serif" font-size="9" fill="#8a94a3" font-weight="700"><text x="78" y="270">Av. Principal</text><text x="198" y="170" transform="rotate(-90 198 170)">Av. Callao</text></g>' +
         '<path id="navpath" d="M70 340 L70 190 L190 190 L190 90 L270 90" pathLength="1" fill="none" stroke="#1D63C9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" class="route-line"/><circle id="navdot" cx="70" cy="340" r="9" fill="#3B82F6" stroke="#fff" stroke-width="4"/></svg>' +
-        '<span class="pin on dest" style="left:' + (270 / 360 * 100).toFixed(2) + '%;top:' + (90 / 440 * 100).toFixed(2) + '%"><svg viewBox="0 0 40 50" width="44" height="54"><path d="M20 48C8 36 3 28 3 19a17 17 0 0134 0c0 9-5 17-17 29z"/></svg><span>' + ic(l.type === 'super' ? 'cart' : 'cap', 18) + '</span></span>' +
-        '<div class="nav-banner" id="navbanner" hidden><span class="nb-ic">' + ic('nav', 26) + '</span><div><strong id="nb-t">Seguí derecho</strong><span id="nb-s">2 cuadras</span></div><b id="nb-eta">4 min</b></div></div>';
-      const card = '<div class="nav-card" id="navcard"><div class="nc-top"><b id="nc-eta">4 min</b><span>(300 m) · A pie · Llegás a las ' + C.hhmm(Date.now() + 4 * 60000) + '</span></div>' +
+        '<span class="pin on dest" style="left:' + (270 / 360 * 100).toFixed(2) + '%;top:' + (90 / 440 * 100).toFixed(2) + '%"><svg viewBox="0 0 40 50" width="44" height="54"><path d="M20 48C8 36 3 28 3 19a17 17 0 0134 0c0 9-5 17-17 29z"/></svg><span>' + ic(C.typeIcon(l), 18) + '</span></span>' +
+        '<div class="nav-banner" id="navbanner" hidden><span class="nb-ic">' + ic('nav', 26) + '</span><div><strong id="nb-t">Seguí derecho</strong><span id="nb-s">2 cuadras</span></div><b id="nb-eta">' + mins + ' min</b></div></div>';
+      const card = '<div class="nav-card" id="navcard" data-mins="' + mins + '"><div class="nc-top"><b id="nc-eta">' + mins + ' min</b><span>(' + Math.round(l.km * 1000) + ' m) · A pie · Llegás a las ' + C.hhmm(Date.now() + mins * 60000) + '</span></div>' +
         '<div class="nc-dest"><span class="lr-ic">' + ic('pin', 22) + '</span><div><strong>Amazon Hub Locker ' + esc(l.name) + '</strong><span>' + esc(l.address) + '</span></div></div>' +
         '<ol class="nc-steps" id="ncsteps">' + steps.map((s2, i) => '<li><span>' + (i + 1) + '</span><div><strong>' + s2[0] + '</strong><em>' + esc(s2[1]) + '</em></div></li>').join('') + '</ol>' +
         '<div id="ncact">' + UI.btn('Iniciar recorrido', 'startNav', { icon: 'nav', data: { id: l.id, order: p.orderId || '' } }) + '</div>' +
@@ -545,7 +560,7 @@
      ============================================================ */
   SC.lockerTab = {
     render() {
-      const near = D.lockers.filter(l => l.status !== 'full').slice(0, 3);
+      const near = D.lockers.filter(l => l.status !== 'full').sort((a, b2) => a.km - b2.km).slice(0, 3);
       const ready = S().orders.find(o => !o.cancelled && o.status === 'ready');
       const favs = S().favorites.map(locker);
       const steps = [['cart', 'Comprá en Amazon'], ['locker', 'Elegí tu locker'], ['qr', 'Retirá cuando quieras'], ['box', 'Disfrutá tu pedido']];
@@ -553,7 +568,7 @@
       const body = '<div class="hub-hero"><img src="assets/locker-cover.jpg" alt=""><div class="hh-tx"><span>Amazon Hub Locker</span><h1>Tus pedidos,<br>en tus tiempos.</h1></div></div><div class="pad-x">' +
         (ready ? '<button type="button" class="hub-banner ready" data-act="showCode" data-id="' + ready.id + '"><span class="hb-ic">' + ic('qr', 28) + '</span><span class="hb-tx"><strong>Tu pedido te espera</strong><span>Tocá para ver tu código de retiro</span></span>' + ic('chevR', 22) + '</button>' : '') +
         '<div class="sec-h"><h2>Cómo funciona</h2></div><ol class="steps">' + steps.map((s, i) => '<li><span class="st-n">' + (i + 1) + '</span>' + ic(s[0], 22) + s[1] + '</li>').join('') + '</ol>' +
-        '<div class="sec-h"><h2>Lockers cercanos</h2><button type="button" class="link" data-act="browseLockers">Ver lista ' + ic('chevR', 14) + '</button></div><div class="lstack">' + near.map(l => UI.lockerRow(l)).join('') + '</div>' +
+        '<button type="button" class="zone-chip" data-act="chooseZone">' + ic('pin', 18) + '<span>Lockers en <b>' + esc(C.barrio().n) + '</b></span><em>Cambiar</em>' + ic('chevD', 14) + '</button>' + '<div class="sec-h"><h2>Lockers cercanos</h2><button type="button" class="link" data-act="browseLockers">Ver lista ' + ic('chevR', 14) + '</button></div><div class="lstack">' + near.map(l => UI.lockerRow(l)).join('') + '</div>' +
         (favs.length ? '<div class="sec-h"><h2>Tus favoritos</h2></div><div class="lstack">' + favs.map(l => UI.lockerRow(l)).join('') + '</div>' : '') +
         '<div class="sec-h"><h2>Por qué elegirlo</h2></div><div class="bens">' + ben.map(b => '<div class="ben"><span>' + ic(b[0], 22) + '</span><strong>' + b[1] + '</strong><em>' + b[2] + '</em></div>').join('') + '</div></div><div class="sp-lg"></div>';
       return UI.page({ header: UI.hdr({ back: false, right: [UI.bellBtn(), UI.cartBtn()] }), body, tab: 'lockerTab' });

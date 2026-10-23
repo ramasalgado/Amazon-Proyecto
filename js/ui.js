@@ -83,14 +83,14 @@
   }
   function lockerThumb(l) {
     if (l.thumb) return '<span class="lthumb"><img src="' + l.thumb + '" alt=""></span>';
-    return '<span class="lthumb icon">' + ic(l.type === 'super' ? 'cart' : 'cap', 26) + '</span>';
+    return '<span class="lthumb icon">' + ic(C.typeIcon(l), 26) + '</span>';
   }
   function lockerRow(l, o) {
     o = o || {};
     const fav = C.state.favorites.indexOf(l.id) >= 0;
     return '<button type="button" class="lcard' + (o.sel ? ' sel' : '') + (l.status === 'full' ? ' muted' : '') + '" data-act="openLocker" data-id="' + l.id + '">' + lockerThumb(l) +
       '<span class="lbody"><strong>' + (l.type === 'super' ? esc(l.name) : 'Amazon Hub Locker<br>' + esc(l.name)) + '</strong>' +
-      '<span class="lsub">' + esc(l.address) + '</span><span class="lsub">A ' + C.km(l.km) + (o.hours ? ' · ' + esc(l.hours) : '') + '</span>' + lockerStatus(l) + '</span>' +
+      '<span class="lsub">' + esc(l.address) + '</span><span class="lsub">' + (o.barrio ? esc(l.barrio) + ' · ' : '') + 'A ' + C.km(l.km) + (o.hours ? ' · ' + esc(l.hours) : '') + '</span>' + lockerStatus(l) + '</span>' +
       (fav ? '<span class="lfav">' + ic('heart', 16) + '</span>' : '') + ic('chevR', 22, 'lchev') + '</button>';
   }
 

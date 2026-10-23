@@ -93,3 +93,102 @@ window.STATUS_LABEL = {
   pickedUp: 'Retirado'
 };
 window.PICKUP_CODE = '123456';
+
+/* ============================================================
+   CIUDAD AUTÓNOMA DE BUENOS AIRES: 48 barrios y lockers por zona
+   Los barrios y sus centros son aproximados. Los comercios, direcciones
+   y disponibilidad de los lockers son ilustrativos (datos de prototipo).
+   ============================================================ */
+(function () {
+  const D = window.DATA;
+  D.defaultBarrio = 'Recoleta';
+  D.barrios = [
+    ['Agronomía', -34.5958, -58.4893], ['Almagro', -34.6097, -58.4166], ['Balvanera', -34.6094, -58.4025], ['Barracas', -34.6439, -58.3711],
+    ['Belgrano', -34.5622, -58.4586], ['Boedo', -34.6265, -58.4186], ['Caballito', -34.6186, -58.4425], ['Chacarita', -34.5879, -58.4553],
+    ['Coghlan', -34.5601, -58.4747], ['Colegiales', -34.5740, -58.4496], ['Constitución', -34.6270, -58.3830], ['Flores', -34.6290, -58.4640],
+    ['Floresta', -34.6290, -58.4840], ['La Boca', -34.6345, -58.3631], ['La Paternal', -34.5979, -58.4690], ['Liniers', -34.6440, -58.5180],
+    ['Mataderos', -34.6580, -58.5040], ['Monte Castro', -34.6190, -58.5030], ['Montserrat', -34.6134, -58.3790], ['Nueva Pompeya', -34.6500, -58.4210],
+    ['Núñez', -34.5450, -58.4600], ['Palermo', -34.5800, -58.4260], ['Parque Avellaneda', -34.6480, -58.4780], ['Parque Chacabuco', -34.6360, -58.4380],
+    ['Parque Chas', -34.5860, -58.4780], ['Parque Patricios', -34.6370, -58.4000], ['Puerto Madero', -34.6118, -58.3626], ['Recoleta', -34.5875, -58.3974],
+    ['Retiro', -34.5920, -58.3750], ['Saavedra', -34.5550, -58.4880], ['San Cristóbal', -34.6220, -58.4010], ['San Nicolás', -34.6030, -58.3790],
+    ['San Telmo', -34.6217, -58.3720], ['Vélez Sarsfield', -34.6330, -58.4920], ['Versalles', -34.6290, -58.5210], ['Villa Crespo', -34.5990, -58.4350],
+    ['Villa del Parque', -34.6050, -58.4890], ['Villa Devoto', -34.6010, -58.5140], ['Villa General Mitre', -34.6110, -58.4690], ['Villa Lugano', -34.6770, -58.4690],
+    ['Villa Luro', -34.6350, -58.5060], ['Villa Ortúzar', -34.5770, -58.4680], ['Villa Pueyrredón', -34.5780, -58.5000], ['Villa Real', -34.6260, -58.5250],
+    ['Villa Riachuelo', -34.6910, -58.4790], ['Villa Santa Rita', -34.6130, -58.4800], ['Villa Soldati', -34.6640, -58.4380], ['Villa Urquiza', -34.5730, -58.4880]
+  ].map(b => ({ n: b[0], lat: b[1], lon: b[2] }));
+
+  /* Los 7 lockers originales conservan su id; ahora tienen coordenadas reales. */
+  const fix = { ing: [-34.5893, -58.3996, 'Recoleta'], dia: [-34.5945, -58.3940, 'Recoleta'], carre: [-34.5972, -58.4000, 'Balvanera'], med: [-34.5998, -58.3975, 'Recoleta'],
+    eco: [-34.6020, -58.4000, 'Balvanera'], der: [-34.5840, -58.3925, 'Recoleta'], coto: [-34.5880, -58.4120, 'Palermo'] };
+  D.lockers.forEach(l => { const f = fix[l.id]; l.lat = f[0]; l.lon = f[1]; l.barrio = f[2]; });
+
+  const RAW = [
+    'Agronomía|F|Facultad de Agronomía (UBA)|Av. San Martín 4453', 'Agronomía|S|Supermercado Día|Av. San Martín 4900',
+    'Almagro|F|UTN Facultad Regional Buenos Aires|Medrano 951', 'Almagro|S|Supermercado Carrefour Express|Av. Rivadavia 3921', 'Almagro|E|Estación Medrano (Subte B)|Av. Corrientes 3900',
+    'Balvanera|F|Facultad de Psicología (UBA)|Hipólito Yrigoyen 3242', 'Balvanera|E|Estación Once (Tren Sarmiento)|Av. Pueyrredón 8', 'Balvanera|M|Abasto Shopping|Av. Corrientes 3247',
+    'Barracas|S|Supermercado Coto|Av. Montes de Oca 1200', 'Barracas|E|Estación Hipólito Yrigoyen (Tren Roca)|Av. Montes de Oca 2100',
+    'Belgrano|F|Universidad Di Tella|Av. Figueroa Alcorta 7350', 'Belgrano|M|Galerías Belgrano|Av. Cabildo 2150', 'Belgrano|S|Supermercado Jumbo|Av. Cabildo 1250',
+    'Boedo|S|Supermercado Día|Av. Boedo 800', 'Boedo|E|Estación Boedo (Subte E)|Av. Independencia 3500',
+    'Caballito|F|Facultad de Filosofía y Letras (UBA)|Puan 480', 'Caballito|S|Supermercado Coto|Av. Rivadavia 5150', 'Caballito|E|Estación Primera Junta (Subte A)|Av. Rivadavia 5400',
+    'Chacarita|E|Estación Federico Lacroze (Subte B)|Av. Federico Lacroze 4000', 'Chacarita|S|Supermercado Disco|Av. Corrientes 6000',
+    'Coghlan|S|Supermercado Día|Av. Congreso 3100', 'Coghlan|E|Estación Coghlan (Tren Mitre)|Av. Congreso 3500',
+    'Colegiales|S|Supermercado Carrefour|Av. Federico Lacroze 2800', 'Colegiales|E|Estación Colegiales (Tren Mitre)|Av. Dorrego 1900',
+    'Constitución|F|Facultad de Ciencias Sociales (UBA)|Santiago del Estero 1029', 'Constitución|E|Estación Constitución (Tren Roca)|Av. Brasil 1100', 'Constitución|S|Supermercado Día|Av. Garay 1300',
+    'Flores|S|Supermercado Coto|Av. Rivadavia 6900', 'Flores|E|Estación Flores (Tren Sarmiento)|Av. Rivadavia 7000', 'Flores|M|Shopping Plaza Flores|Av. Rivadavia 7300',
+    'Floresta|S|Supermercado Día|Av. Gaona 3500', 'Floresta|E|Estación Floresta (Tren Sarmiento)|Av. Gaona 3200',
+    'La Boca|S|Supermercado Día|Av. Almirante Brown 1100', 'La Boca|M|Paseo Caminito|Caminito 1000',
+    'La Paternal|F|Facultad de Veterinaria (UBA)|Av. Chorroarín 280', 'La Paternal|E|Estación La Paternal (Tren San Martín)|Av. San Martín 2400',
+    'Liniers|S|Supermercado Coto|Av. Rivadavia 11200', 'Liniers|E|Estación Liniers (Tren Sarmiento)|Av. Rivadavia 11100',
+    'Mataderos|S|Supermercado Carrefour|Av. Lisandro de la Torre 2300', 'Mataderos|M|Mercado de Liniers|Av. Lisandro de la Torre 2400',
+    'Monte Castro|S|Supermercado Día|Av. Rivadavia 8900', 'Monte Castro|E|Estación Devoto (Tren San Martín)|Av. Beiró 5100',
+    'Montserrat|F|UADE Campus Montserrat|Lima 717', 'Montserrat|E|Estación Plaza de Mayo (Subte A)|Av. de Mayo 500', 'Montserrat|S|Supermercado Día|Av. Belgrano 800',
+    'Nueva Pompeya|S|Supermercado Coto|Av. Sáenz 800', 'Nueva Pompeya|M|Parque de la Ciudad|Av. Escalada 3000',
+    'Núñez|F|Facultad de Ciencias Exactas (Ciudad Universitaria)|Intendente Güiraldes 2160', 'Núñez|F|Facultad de Arquitectura (Ciudad Universitaria)|Intendente Güiraldes 2160', 'Núñez|E|Estación Núñez (Tren Mitre)|Av. del Libertador 8300',
+    'Palermo|F|Universidad de Palermo|Mario Bravo 1050', 'Palermo|M|Alto Palermo Shopping|Av. Santa Fe 3253', 'Palermo|E|Estación Plaza Italia (Subte D)|Av. Santa Fe 4000',
+    'Parque Avellaneda|S|Supermercado Día|Av. Directorio 4700', 'Parque Avellaneda|M|Parque Avellaneda|Av. Directorio 4800',
+    'Parque Chacabuco|S|Supermercado Coto|Av. Eva Perón 1800', 'Parque Chacabuco|E|Estación Parque Chacabuco (Subte E)|Av. Asamblea 1000',
+    'Parque Chas|S|Supermercado Día|Av. Triunvirato 4800', 'Parque Chas|M|Plaza Parque Chas|Victorica 5000',
+    'Parque Patricios|F|Distrito Tecnológico (Centro Metropolitano)|Av. Cobo 1000', 'Parque Patricios|S|Supermercado Coto|Av. Caseros 3100',
+    'Puerto Madero|F|Universidad Católica Argentina (UCA)|Av. Alicia Moreau de Justo 1500', 'Puerto Madero|F|ITBA Instituto Tecnológico de Buenos Aires|Av. Eduardo Madero 399', 'Puerto Madero|M|Dique 3 Costanera Sur|Juana Manso 800',
+    'Recoleta|F|Facultad de Odontología (UBA)|Marcelo T. de Alvear 2142', 'Recoleta|F|Facultad de Farmacia y Bioquímica (UBA)|Junín 956', 'Recoleta|M|Recoleta Mall|Vicente López 2050',
+    'Retiro|E|Estación Retiro (Tren Mitre)|Av. Ramos Mejía 1358', 'Retiro|M|Galerías Pacífico|Florida 753', 'Retiro|S|Supermercado Carrefour|Av. Santa Fe 1000',
+    'Saavedra|S|Supermercado Coto|Av. Cabildo 4800', 'Saavedra|E|Estación Saavedra (Tren Mitre)|Av. Crisólogo Larralde 4100',
+    'San Cristóbal|F|Universidad de Belgrano (Sede Centro)|Av. Entre Ríos 1100', 'San Cristóbal|S|Supermercado Día|Av. Independencia 2800',
+    'San Nicolás|F|Facultad de Derecho (Sede Centro)|Uruguay 1000', 'San Nicolás|E|Estación Diagonal Norte (Subte C)|Av. Roque Sáenz Peña 800', 'San Nicolás|S|Supermercado Coto|Av. Corrientes 1500',
+    'San Telmo|F|Facultad de Ingeniería (UBA) Sede Paseo Colón|Av. Paseo Colón 850', 'San Telmo|S|Supermercado Día|Defensa 900',
+    'Vélez Sarsfield|S|Supermercado Día|Av. Juan B. Justo 8000', 'Vélez Sarsfield|M|Estadio José Amalfitani|Av. Juan B. Justo 9200',
+    'Versalles|S|Supermercado Coto|Av. Juan B. Justo 9500', 'Versalles|E|Estación Versalles (Tren Sarmiento)|Av. Rivadavia 10800',
+    'Villa Crespo|S|Supermercado Disco|Av. Scalabrini Ortiz 600', 'Villa Crespo|M|Distrito Diseño|Av. Warnes 600', 'Villa Crespo|E|Estación Malabia (Subte B)|Av. Corrientes 5400',
+    'Villa del Parque|S|Supermercado Día|Av. Cuenca 3000', 'Villa del Parque|E|Estación Villa del Parque (Tren San Martín)|Av. Beiró 3100',
+    'Villa Devoto|S|Supermercado Carrefour|Av. Fernández de Enciso 4500', 'Villa Devoto|M|Plaza Arenales|Av. Chivilcoy 3000',
+    'Villa General Mitre|S|Supermercado Día|Av. San Martín 5500', 'Villa General Mitre|E|Estación Villa General Mitre (Tren San Martín)|Av. San Martín 5800',
+    'Villa Lugano|S|Supermercado Coto|Av. Eva Perón 6500', 'Villa Lugano|F|UTN Campus Villa Lugano|Mozart 2300', 'Villa Lugano|M|Parque de la Ciudad|Av. Cnel. Roca 6000',
+    'Villa Luro|S|Supermercado Carrefour|Av. Rivadavia 9800', 'Villa Luro|E|Estación Villa Luro (Tren Sarmiento)|Av. Rivadavia 9900',
+    'Villa Ortúzar|S|Supermercado Día|Av. Triunvirato 3400', 'Villa Ortúzar|E|Estación Villa Ortúzar (Tren San Martín)|Av. Triunvirato 3600',
+    'Villa Pueyrredón|S|Supermercado Coto|Av. Mosconi 3000', 'Villa Pueyrredón|E|Estación Villa Pueyrredón (Tren San Martín)|Av. Mosconi 2800',
+    'Villa Real|S|Supermercado Día|Av. Francisco Beiró 6600', 'Villa Real|E|Estación Villa Real (Tren Sarmiento)|Av. Gaona 4900',
+    'Villa Riachuelo|S|Supermercado Día|Av. Cnel. Roca 4800', 'Villa Riachuelo|M|Plaza Riachuelo|Av. Cnel. Roca 4900',
+    'Villa Santa Rita|S|Supermercado Coto|Av. Álvarez Jonte 3100', 'Villa Santa Rita|E|Estación Villa Santa Rita (Tren San Martín)|Av. Beiró 4000',
+    'Villa Soldati|F|UTN Facultad Regional Buenos Aires (Campus)|Mozart 2300', 'Villa Soldati|S|Supermercado Coto|Av. Cnel. Roca 3300',
+    'Villa Urquiza|S|Supermercado Jumbo|Av. Triunvirato 4400', 'Villa Urquiza|E|Estación Villa Urquiza (Subte B)|Av. Triunvirato 4300', 'Villa Urquiza|F|Universidad Argentina de la Empresa (UADE) Sede Villa Urquiza|Av. Triunvirato 4500'
+  ];
+  const TYPE = { F: 'facultad', S: 'super', E: 'estacion', M: 'shopping' };
+  const HRS = { facultad: 'Lun - Vie 7:00 - 22:00', super: 'Lun - Dom 8:00 - 22:00', estacion: 'Todos los días 5:00 - 23:00', shopping: 'Lun - Dom 10:00 - 22:00' };
+  const WHERE = { facultad: 'Hall principal, planta baja', super: 'Hall de entrada, junto a las cajas', estacion: 'Boletería, nivel calle', shopping: 'Planta baja, cerca del acceso principal' };
+  const SIZES = ['Espacios grandes y medianos', 'Espacios pequeños y medianos', 'Espacios medianos', 'Espacios grandes, medianos y pequeños'];
+  const hash = s => { let h = 7; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
+  const byName = n => D.barrios.find(b => b.n === n);
+  const slug = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const seen = {};
+  RAW.forEach((line, i) => {
+    const [barrio, t, name, address] = line.split('|'), b = byName(barrio), h = hash(line), type = TYPE[t];
+    if (!b) return;
+    let id = slug(barrio + '-' + name).slice(0, 40); if (seen[id]) id += '-' + i; seen[id] = 1;
+    const full = h % 9 === 0, free = full ? 0 : 1 + (h % 14);
+    // posición dentro del barrio: desvío determinístico de hasta ~450 m
+    let dlat = ((h % 1000) / 1000 - .5) * .008, dlon = (((h >> 10) % 1000) / 1000 - .5) * .008;
+    if (barrio === D.defaultBarrio) { const dd = Math.hypot(dlat * 111, dlon * 91.4); if (dd < .55) { const k = .55 / Math.max(dd, .01); dlat *= k; dlon *= k; } } // la Facultad de Ingeniería queda como el locker más cercano
+    D.lockers.push({ id, name, type, address: address + ', CABA', barrio, km: 0, hours: HRS[type], status: full ? 'full' : 'available', free,
+      sizes: full ? 'Sin espacios libres' : SIZES[h % SIZES.length], where: WHERE[type], thumb: type === 'facultad' ? 'assets/thumb-facultad.jpg' : null, lat: b.lat + dlat, lon: b.lon + dlon });
+  });
+})();

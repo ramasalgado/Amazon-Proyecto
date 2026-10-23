@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   const C = window.CORE, UI = window.UI, D = window.DATA, SC = window.SCREENS, H = window.SCH, L = window.LSTATE;
-  const { $, $$, esc, ic, money, km, product, locker, R } = C;
+  const { $, $$, esc, ic, money, km, norm, product, locker, R } = C;
   const S = () => C.state;
   const ACT = {};
   const timers = [];
@@ -67,7 +67,7 @@
 
   /* ---------- Navegación de checkout ---------- */
   function resetLs(mode) {
-    L.ls = { q: '', type: 'all', quick: null, view: 'list', maxKm: null, onlyAvail: false, late: false, loading: true, sel: null, mode };
+    L.ls = { q: '', type: 'all', quick: null, view: 'list', maxKm: null, all: false, limit: 12, onlyAvail: false, late: false, loading: true, sel: null, mode };
   }
   const btnLoading = (el, on) => { if (!el) return; el.classList.toggle('loading', on); el.disabled = on; };
   function copyText(t) {
@@ -207,7 +207,7 @@
     /* ----- Método de entrega ----- */
     toDelivery() { if (S().nav.some(n => n.name === 'delivery') && R.cur().name !== 'checkout') R.backTo('delivery'); else R.go('delivery'); },
     pickDelivery(el) {
-      if (el.dataset.id === 'pickup') { UI.toast('Por ahora no hay puntos de retiro cerca de Av. Principal 123.'); return; }
+      if (el.dataset.id === 'pickup') { UI.toast('Por ahora no hay puntos de retiro cerca de ' + C.barrio().n + '.'); return; }
       S().checkout.delivery = el.dataset.id; C.save(); rerender();
     },
     confirmDelivery() {
@@ -218,16 +218,27 @@
     },
 
     /* ----- Lockers: búsqueda / filtros ----- */
-    lockerType(el) { L.ls.type = el.dataset.v; L.ls.sel = null; rerender(); },
-    lockerQuick(el) { L.ls.quick = L.ls.quick === el.dataset.v ? null : el.dataset.v; rerender(); },
+    lockerType(el) { L.ls.type = el.dataset.v; L.ls.sel = null; L.ls.limit = 12; rerender(); },
+    chooseZone() { openZoneSheet(); },
+    setZone(el) {
+      C.setBarrio(el.dataset.n); C.logEvent('barrio', el.dataset.n); Object.assign(L.ls, { sel: null, limit: 12, all: false, q: '' });
+      UI.closeSheet(); rerender(); UI.toast('Mostrando lockers en ' + el.dataset.n + '.');
+    },
+    useMyLocation() {
+      UI.closeSheet(); UI.toast('Buscando tu ubicación…', { ms: 1400 });
+      later(() => { C.setBarrio(window.DATA.defaultBarrio); Object.assign(L.ls, { sel: null, limit: 12, all: false, q: '' }); rerender(); UI.toast('Estás en ' + window.DATA.defaultBarrio + '. Actualizamos los lockers.'); }, 1300);
+    },
+    moreLockers() { L.ls.limit = (L.ls.limit || 12) + 12; const r = $('#lres'); if (r) r.innerHTML = SC.lockerSearch.results(); },
+    fAll() { L.ls.all = !L.ls.all; if (L.ls.all) L.ls.maxKm = null; L.ls.limit = 12; if ($('.sheet-b')) refreshFilters(); else rerender(); },
+    lockerQuick(el) { L.ls.quick = L.ls.quick === el.dataset.v ? null : el.dataset.v; L.ls.limit = 12; rerender(); },
     setView(el) { L.ls.view = el.dataset.v; L.ls.sel = null; rerender(); },
     clearLq() { L.ls.q = ''; rerender(); const i = $('#lq'); if (i) i.focus(); },
-    clearLockerFilters() { Object.assign(L.ls, { q: '', type: 'all', quick: null, maxKm: null, onlyAvail: false, late: false, sel: null }); rerender(); },
+    clearLockerFilters() { Object.assign(L.ls, { q: '', type: 'all', quick: null, maxKm: null, all: false, limit: 12, onlyAvail: false, late: false, sel: null }); rerender(); },
     moreFilters() { openFiltersSheet(); },
-    fMax(el) { const v = Number(el.dataset.v) || null; L.ls.maxKm = L.ls.maxKm === v ? null : v; refreshFilters(); },
+    fMax(el) { const v = Number(el.dataset.v) || null; L.ls.maxKm = L.ls.maxKm === v ? null : v; L.ls.all = false; refreshFilters(); },
     fAvail() { L.ls.onlyAvail = !L.ls.onlyAvail; refreshFilters(); },
     fLate() { L.ls.late = !L.ls.late; refreshFilters(); },
-    fClear() { Object.assign(L.ls, { maxKm: null, onlyAvail: false, late: false }); refreshFilters(); },
+    fClear() { Object.assign(L.ls, { maxKm: null, all: false, onlyAvail: false, late: false }); refreshFilters(); },
     pickPin(el) { L.ls.sel = el.dataset.id; rerender(); },
     openLocker(el) {
       const cur = R.cur(), mode = cur.name === 'lockerSearch' ? cur.params.mode : 'browse';
@@ -303,14 +314,15 @@
       const l = locker(el.dataset.id), o = el.dataset.order ? orderOf(el.dataset.order) : null;
       const path = $('#navpath'), dot = $('#navdot'), len = path.getTotalLength(), t0 = performance.now(), DUR = 7500;
       $('#ncsteps').hidden = true; $('#navbanner').hidden = false; $('#ncact').innerHTML = '<div class="nc-live">' + ic('nav', 18) + 'Navegando…</div>';
-      const say = [[0, 'Seguí derecho', '2 cuadras por Av. Principal', 4], [.34, 'Girá a la derecha', 'En Av. Callao, 1 cuadra', 2], [.72, 'El locker está adelante', l.where, 1]];
+      const mins = Math.max(1, Number($('#navcard').dataset.mins) || 4), eta = k => Math.max(1, Math.round(mins * (1 - k)));
+      const say = [[0, 'Seguí derecho', 'Por la avenida principal', 0], [.34, 'Girá a la derecha', 'En la próxima esquina', .34], [.72, 'El locker está adelante', l.where, .72]];
       let last = -1;
       const tick = now => {
         if (!$('#navpath')) return;
         const k = Math.min(1, (now - t0) / DUR), pt = path.getPointAtLength(k * len);
         dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y);
         let i = 0; say.forEach((s2, j) => { if (k >= s2[0]) i = j; });
-        if (i !== last) { last = i; $('#nb-t').textContent = say[i][1]; $('#nb-s').textContent = say[i][2]; $('#nb-eta').textContent = say[i][3] + ' min'; $('#nc-eta').textContent = say[i][3] + ' min'; }
+        if (i !== last) { last = i; $('#nb-t').textContent = say[i][1]; $('#nb-s').textContent = say[i][2]; $('#nb-eta').textContent = eta(say[i][3]) + ' min'; $('#nc-eta').textContent = eta(say[i][3]) + ' min'; }
         if (k < 1) window.NAVRAF = requestAnimationFrame(tick);
         else arrive(l, o);
       };
@@ -367,10 +379,22 @@
       '<button type="button" class="link spaced" id="addr-add" data-act="addrForm">' + ic('plus', 16) + 'Agregar dirección</button>' +
       '<div id="addr-form" hidden><label class="field"><span>Calle y número</span><input id="addr-in" placeholder="Av. Corrientes 1234" autocomplete="off"></label><p class="field-err" id="addr-err" hidden></p>' + UI.btn('Guardar dirección', 'addAddress') + '</div>', { title: 'Dirección de envío' });
   }
+  function zoneList(q) {
+    const n = norm(q || ''), cur = C.barrio().n, items = D.barrios.filter(b => !n || norm(b.n).indexOf(n) >= 0);
+    if (!items.length) return '<p class="muted pad">No encontramos ese barrio. Revisá cómo está escrito.</p>';
+    return '<div class="zlist" role="listbox" aria-label="Barrios de la Ciudad">' + items.map(b => {
+      const cnt = D.lockers.filter(l => l.barrio === b.n).length;
+      return '<button type="button" role="option" aria-selected="' + (b.n === cur) + '" class="zrow' + (b.n === cur ? ' on' : '') + '" data-act="setZone" data-n="' + esc(b.n) + '"><span class="zi">' + ic('pin', 18) + '</span><strong>' + esc(b.n) + '</strong><em>' + cnt + (cnt === 1 ? ' locker' : ' lockers') + '</em>' + (b.n === cur ? ic('check', 18) : '') + '</button>';
+    }).join('') + '</div>';
+  }
+  function openZoneSheet() {
+    UI.sheet('<label class="searchbar light zsearch">' + ic('search', 20) + '<input id="zone-q" type="search" placeholder="Buscar barrio" autocomplete="off"></label>' +
+      '<button type="button" class="zgeo" data-act="useMyLocation">' + ic('nav', 22) + '<span><strong>Usar mi ubicación</strong><em>Detectamos en qué barrio estás</em></span></button><div id="zone-list">' + zoneList('') + '</div>', { title: '¿En qué barrio estás?' });
+  }
   function openFiltersSheet() { UI.sheet(filtersBody(), { title: 'Más filtros' }); }
   function filtersBody() {
     const f = L.ls, n = H.filterLockers().length;
-    return ('<h3 class="sub-h first">Distancia máxima</h3><div class="chips wrap">' + [[0.5, 'Hasta 0,5 km'], [1, 'Hasta 1 km'], [2, 'Hasta 2 km']].map(d => UI.chip(d[1], 'fMax', f.maxKm === d[0], { v: d[0] })).join('') + '</div>' +
+    return ('<h3 class="sub-h first">Distancia máxima</h3><div class="chips wrap">' + [[0.5, 'Hasta 0,5 km'], [1, 'Hasta 1 km'], [2, 'Hasta 2 km']].map(d => UI.chip(d[1], 'fMax', f.maxKm === d[0], { v: d[0] })).join('') + UI.chip('Toda la Ciudad', 'fAll', f.all, null, 'map') + '</div>' +
       '<div class="list-card pad spaced">' + UI.sw('fAvail', f.onlyAvail, 'Solo con espacio disponible', 'Ocultamos los lockers llenos') + UI.sw('fLate', f.late, 'Abiertos hasta las 22 h o más', 'Para cuando salís tarde') + '</div>' +
       '<div class="two">' + UI.btn('Limpiar', 'fClear', { kind: 'secondary' }) + UI.btn(n ? 'Ver ' + n + (n === 1 ? ' locker' : ' lockers') : 'Sin resultados', 'closeSheet', { disabled: !n }) + '</div>');
   }
@@ -411,7 +435,8 @@
       $('.cboxes').innerHTML = [0, 1, 2, 3, 4, 5].map(i => '<span class="cbox' + (i === L.code.length ? ' cur' : '') + (L.code[i] ? ' fill' : '') + '">' + (L.code[i] || '') + '</span>').join('');
       const er = $('#code-err'); if (er) er.hidden = true;
       const b = $('#btn-validate'); if (b) { b.disabled = L.code.length < 6; }
-    } else if (t.id === 'svtext') { L.survey.text = t.value; }
+    } else if (t.id === 'zone-q') { const zl = $('#zone-list'); if (zl) zl.innerHTML = zoneList(t.value); }
+    else if (t.id === 'svtext') { L.survey.text = t.value; }
   });
   document.addEventListener('submit', e => {
     if (e.target.id === 'search-form') {

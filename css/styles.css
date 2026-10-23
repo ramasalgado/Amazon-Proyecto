@@ -635,3 +635,20 @@ a.btn { text-decoration: none; }
 .link.ext { display: flex; justify-content: center; width: 100%; margin-top: var(--s2); color: var(--ink-3); font-size: 13px; text-decoration: underline; }
 .nc-top + .nc-dest { margin-top: 0; }
 #navcard .callout { margin-top: 0; }
+
+/* ---------- Ubicación: barrio de CABA ---------- */
+.locbar { display: flex; align-items: center; gap: 8px; width: calc(100% - 32px); margin: 0 var(--s4) 10px; padding: 9px 12px; border-radius: var(--r-md); background: rgba(255,255,255,.1); color: #fff; font-size: 14px; text-align: left; }
+.locbar span { flex: 1; } .locbar b { color: var(--orange); } .locbar em { font-style: normal; color: #cdd6e0; font-size: 13px; font-weight: 600; } .locbar .ic:first-child { color: var(--orange); }
+.locbar:active { background: rgba(255,255,255,.18); }
+.zone-chip { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: var(--s4); padding: 12px 14px; border-radius: var(--r-md); background: var(--gray-50); border: 1px solid var(--gray); font-size: 14px; }
+.zone-chip span { flex: 1; } .zone-chip em { font-style: normal; color: var(--link); font-weight: 700; font-size: 13px; } .zone-chip .ic:first-child { color: #B86E00; }
+.zsearch { margin: 0 0 var(--s3); width: 100%; background: var(--gray-50); box-shadow: inset 0 0 0 1px var(--gray); }
+.zgeo { display: flex; align-items: center; gap: var(--s3); width: 100%; padding: 12px 14px; border-radius: var(--r-md); background: var(--info-tint); color: #1D55B8; margin-bottom: var(--s3); }
+.zgeo span { display: flex; flex-direction: column; } .zgeo em { font-style: normal; font-size: 13px; color: var(--ink-2); }
+.zlist { display: flex; flex-direction: column; }
+.zrow { display: flex; align-items: center; gap: var(--s3); padding: 13px 4px; border-bottom: 1px solid var(--gray); width: 100%; }
+.zrow .zi { color: var(--ink-3); } .zrow strong { flex: 1; font-weight: 600; } .zrow em { font-style: normal; color: var(--ink-3); font-size: 13px; }
+.zrow.on strong { color: #B86E00; } .zrow.on .zi, .zrow.on .ic:last-child { color: var(--orange-press); }
+.zrow:active { background: var(--gray-50); }
+.map-none { position: absolute; left: 20px; right: 20px; top: 40%; background: rgba(255,255,255,.96); padding: 14px; border-radius: var(--r-md); text-align: center; font-size: 14px; color: var(--ink-2); box-shadow: var(--sh-1); }
+.map-legend { display: inline-flex; align-items: center; gap: 6px; }

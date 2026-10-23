@@ -66,6 +66,13 @@
   }
   let S;
   try { S = JSON.parse(localStorage.getItem(KEY)) || initialState(); } catch (e) { S = initialState(); }
+  /* ---------- Ubicación del usuario (barrio de CABA) ---------- */
+  const rad = x => x * Math.PI / 180;
+  const distKm = (a, b, c, d) => { const R6 = 6371, dl = rad(c - a), dn = rad(d - b), h = Math.sin(dl / 2) ** 2 + Math.cos(rad(a)) * Math.cos(rad(c)) * Math.sin(dn / 2) ** 2; return 2 * R6 * Math.asin(Math.sqrt(h)); };
+  const barrio = () => D.barrios.find(b => b.n === ((S && S.loc) || D.defaultBarrio)) || D.barrios[0];
+  const setBarrio = n => { S.loc = n; save(); };
+  D.lockers.forEach(l => Object.defineProperty(l, 'km', { configurable: true, enumerable: true, get() { const b = barrio(); return Math.max(0.1, Math.round(distKm(b.lat, b.lon, l.lat, l.lon) * 10) / 10); } }));
+  const typeIcon = l => ({ facultad: 'cap', super: 'cart', estacion: 'nav', shopping: 'store' }[l.type] || 'pin');
   if (!S.nav || !S.nav.length) S.nav = [{ name: 'welcome', params: {} }];
   let saveT;
   function save() {
@@ -435,6 +442,6 @@
     return '<svg class="qr" width="' + (size || 180) + '" height="' + (size || 180) + '" viewBox="0 0 ' + N + ' ' + N + '" fill="#131A22" shape-rendering="crispEdges" role="img" aria-label="Código QR de retiro">' + r + '</svg>';
   }
 
-  window.CORE = { $, $$, esc, norm, money, km, hhmm, dayLabel, shortDate, whenLabel, ago, DAY, product, locker, S: () => S, save, resetAll, logEvent, seqFor, isDone, statusIdx, lastOrder, deadline, deadlineLabel, remaining, mapsUrl, colorList, etaTransit, notify, advanceOrder, R, ic, LOGO, art, qr, KEY };
+  window.CORE = { barrio, setBarrio, distKm, typeIcon, $, $$, esc, norm, money, km, hhmm, dayLabel, shortDate, whenLabel, ago, DAY, product, locker, S: () => S, save, resetAll, logEvent, seqFor, isDone, statusIdx, lastOrder, deadline, deadlineLabel, remaining, mapsUrl, colorList, etaTransit, notify, advanceOrder, R, ic, LOGO, art, qr, KEY };
   Object.defineProperty(window.CORE, 'state', { get: () => S });
 })();
