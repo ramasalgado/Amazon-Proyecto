@@ -72,17 +72,18 @@
     const base = $('#trk-base'), done = $('#trk-done'), trk = $('#trk');
     if (!o || !base || !trk) return;
     const g = window.TRACK.geo(o), len = base.getTotalLength();
+    const places = D.barrios.map(b => [b.n, b.lat, b.lon]).concat(window.TRACK.places);
     const set = p => {
       const pt = base.getPointAtLength(p * len);
       trk.setAttribute('transform', 'translate(' + pt.x.toFixed(1) + ' ' + pt.y.toFixed(1) + ')');
       done.setAttribute('stroke-dasharray', p.toFixed(3) + ' 1');
       if (o.status !== 'transit') return;
       const ll = g.inv(pt.x, pt.y);
-      let near = D.barrios[0], best = 1e9; D.barrios.forEach(b => { const d = C.distKm(ll.lat, ll.lon, b.lat, b.lon); if (d < best) { best = d; near = b; } });
-      const rest = Math.max(0.1, Math.round(g.km * (1 - p) * 10) / 10), eta = Math.max(1, Math.round(g.km * (1 - p) * 3.5));
-      const t = $('#tm-title'), s2 = $('#tm-sub'), e = $('#tm-eta');
-      if (t) t.textContent = 'En camino · pasando por ' + near.n;
-      if (s2) s2.textContent = 'A ' + km(rest) + ' de ' + (o.lockerId ? 'tu locker' : 'tu domicilio');
+      let near = places[0], best = 1e9; places.forEach(b => { const d = C.distKm(ll.lat, ll.lon, b[1], b[2]); if (d < best) { best = d; near = b; } });
+      const rest = Math.max(0.1, Math.round(g.km * (1 - p) * 10) / 10), eta = Math.max(1, Math.round(g.km * (1 - p) * 2.2));
+      const t = $('#tm-title'), s2 = $('#tm-sub'), e = $('#tm-eta'), city = p >= g.hubP;
+      if (t) t.textContent = (city ? 'En reparto' : 'En ruta') + ' · pasando por ' + near[0];
+      if (s2) s2.textContent = (city ? 'Reparto dentro de la Ciudad · ' : 'Rumbo a la base de reparto · ') + 'a ' + km(rest) + ' de ' + (o.lockerId ? 'tu locker' : 'tu domicilio');
       if (e) e.textContent = '~' + eta + ' min';
     };
     if (o.status !== 'transit') { set(window.TRACK.progress(o)); return; }

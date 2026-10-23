@@ -655,7 +655,8 @@ a.btn { text-decoration: none; }
 
 /* ---------- Mapa del recorrido (seguimiento) ---------- */
 .tmap { position: relative; border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--gray); box-shadow: var(--sh-1); background: #edeff2; }
-.tmap > svg { display: block; width: 100%; height: 230px; }
+.tmap > svg { display: block; width: 100%; height: 300px; }
+.tm-city { font: 800 11px Arial, sans-serif; fill: #8a97a8; letter-spacing: .12em; }
 .tm-lab { font: 700 10px Arial, sans-serif; fill: #131A22; paint-order: stroke; stroke: #fff; stroke-width: 3.500px; stroke-linejoin: round; }
 .trk-ring { fill: rgba(29,99,201,.22); animation: trkring 1.6s ease-out infinite; transform-origin: center; }
 @keyframes trkring { 0% { transform: scale(.7); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }

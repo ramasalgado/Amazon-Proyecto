@@ -402,43 +402,59 @@
     return '';
   }
   /* ---------- Mapa del recorrido del camión ---------- */
-  const DEPOT = { name: 'Centro logístico Amazon', lat: -34.6580, lon: -58.4330 };
+  const DEPOT = { name: 'Centro logístico Amazon · Ezeiza', lat: -34.8300, lon: -58.5200 };
+  const HUB = { name: 'Base de reparto · Villa Soldati', lat: -34.6580, lon: -58.4330 };
+  const HIGHWAY = [[-34.7900, -58.4760], [-34.7500, -58.4420], [-34.7050, -58.4380]]; // autopista hacia la Ciudad
+  const PLACES = [['Ezeiza', -34.84, -58.52], ['Monte Grande', -34.80, -58.47], ['Lomas de Zamora', -34.76, -58.43], ['Lanús', -34.71, -58.40], ['Valentín Alsina', -34.67, -58.42]];
+  const CABA = [[-34.535, -58.531], [-34.534, -58.455], [-34.575, -58.395], [-34.600, -58.360], [-34.655, -58.340], [-34.690, -58.395], [-34.705, -58.470], [-34.690, -58.531]];
   const TRANSIT_MS = () => (S().auto === false ? 45000 : 11000);
   function trackGeo(o) {
     let dest;
     if (o.lockerId) { const l = locker(o.lockerId); dest = { lat: l.lat, lon: l.lon, name: l.name, short: l.name.length > 24 ? l.name.slice(0, 23) + '…' : l.name }; }
     else { const b = C.barrio(); dest = { lat: b.lat + .0012, lon: b.lon - .0015, name: 'Tu domicilio', short: 'Tu domicilio' }; }
-    const W = 360, H = 250, pad = 48, mLat = (DEPOT.lat + dest.lat) / 2, mLon = (DEPOT.lon + dest.lon) / 2;
-    const wKm = Math.max(.9, Math.abs(dest.lon - DEPOT.lon) * 91.4), hKm = Math.max(.9, Math.abs(dest.lat - DEPOT.lat) * 111), sc = Math.min((W - 2 * pad) / wKm, (H - 2 * pad) / hKm);
-    const X = lon => W / 2 + (lon - mLon) * 91.4 * sc, Y = lat => H / 2 - (lat - mLat) * 111 * sc;
-    const x0 = X(DEPOT.lon), y0 = Y(DEPOT.lat), x1 = X(dest.lon), y1 = Y(dest.lat), ym = y0 + (y1 - y0) * .45;
-    return { W, H, dest, x0, y0, x1, y1, km: C.distKm(DEPOT.lat, DEPOT.lon, dest.lat, dest.lon) * 1.25,
-      d: 'M' + x0.toFixed(1) + ' ' + y0.toFixed(1) + 'V' + ym.toFixed(1) + 'H' + x1.toFixed(1) + 'V' + y1.toFixed(1),
-      inv: (x, y) => ({ lon: mLon + (x - W / 2) / (91.4 * sc), lat: mLat - (y - H / 2) / (111 * sc) }) };
+    const midLat = HUB.lat + (dest.lat - HUB.lat) * .45;
+    const geo = [[DEPOT.lat, DEPOT.lon]].concat(HIGHWAY, [[HUB.lat, HUB.lon], [midLat, HUB.lon], [midLat, dest.lon], [dest.lat, dest.lon]]);
+    const W = 360, H = 320, padX = 50, padT = 40, padB = 50;
+    const lats = geo.map(g => g[0]).concat(CABA.map(g => g[0])), lons = geo.map(g => g[1]).concat(CABA.map(g => g[1]));
+    const minLat = Math.min.apply(null, lats), maxLat = Math.max.apply(null, lats), minLon = Math.min.apply(null, lons), maxLon = Math.max.apply(null, lons);
+    const sc = Math.min((W - 2 * padX) / ((maxLon - minLon) * 91.4), (H - padT - padB) / ((maxLat - minLat) * 111));
+    const cLat = (minLat + maxLat) / 2, cLon = (minLon + maxLon) / 2, cy = padT + (H - padT - padB) / 2;
+    const X = lon => W / 2 + (lon - cLon) * 91.4 * sc, Y = lat => cy - (lat - cLat) * 111 * sc;
+    const pts = geo.map(g => [X(g[1]), Y(g[0])]);
+    // km por tramo (con factor de calles) y posición de la base de reparto sobre el recorrido
+    const seg = []; for (let i = 1; i < geo.length; i++) seg.push(C.distKm(geo[i - 1][0], geo[i - 1][1], geo[i][0], geo[i][1]) * 1.12);
+    const total = seg.reduce((a, b) => a + b, 0), hubP = seg.slice(0, 4).reduce((a, b) => a + b, 0) / total;
+    return { W, H, dest, pts, hub: pts[4], km: total, hubP,
+      d: pts.map((q, i) => (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join(''),
+      caba: CABA.map(g => X(g[1]).toFixed(1) + ',' + Y(g[0]).toFixed(1)).join(' '),
+      inv: (x, y) => ({ lon: cLon + (x - W / 2) / (91.4 * sc), lat: cLat - (y - cy) / (111 * sc) }) };
   }
-  const trackP = o => o.status === 'transit' ? Math.max(.05, Math.min(.96, (Date.now() - (o.times.transit || Date.now())) / TRANSIT_MS())) : (['confirmed', 'preparing'].indexOf(o.status) >= 0 ? 0 : 1);
+  const trackP = o => o.status === 'transit' ? Math.max(.04, Math.min(.97, (Date.now() - (o.times.transit || Date.now())) / TRANSIT_MS())) : (['confirmed', 'preparing'].indexOf(o.status) >= 0 ? 0 : 1);
   function trackText(o, g) {
     const n = g.dest.name;
-    return { confirmed: ['En el centro logístico', 'Tu pedido ya está registrado y todavía no salió del depósito.', 'Hoy'],
-      preparing: ['Cargando el camión', 'Estamos acomodando tu pedido en el camión de reparto.', 'En breve'],
-      transit: ['En camino', 'Saliendo del centro logístico…', ''],
+    return { confirmed: ['En el centro logístico de Ezeiza', 'Tu pedido ya está registrado y todavía no salió del depósito.', 'Hoy'],
+      preparing: ['Cargando el camión', 'Estamos acomodando tu pedido en el camión que sale desde Ezeiza.', 'En breve'],
+      transit: ['En camino', 'Saliendo del centro logístico de Ezeiza…', ''],
       atLocker: ['El camión ya llegó', o.lockerId ? 'Dejó tu pedido en ' + n + '.' : 'Está en la puerta de tu domicilio.', 'Llegó'],
       ready: ['Tu pedido está en el locker', 'Está guardado y listo para que lo retires.', 'Listo'],
       pickedUp: ['Pedido retirado', 'Lo retiraste de ' + n + '.', 'Retirado'],
       delivered: ['Pedido entregado', 'Lo dejamos en tu domicilio.', 'Entregado'] }[o.status];
   }
   function trackMap(o) {
-    const g = trackGeo(o), p = trackP(o), t = trackText(o, g), done = o.status === 'ready' || o.status === 'pickedUp';
-    const trk = '<g id="trk" transform="translate(' + g.x0.toFixed(1) + ' ' + g.y0.toFixed(1) + ')"><circle class="trk-ring" r="20"/><circle r="15" fill="#131A22" stroke="#fff" stroke-width="3"/>' + ic('truck', 20).replace('<svg ', '<svg x="-10" y="-10" style="color:#fff" ') + '</g>';
-    const pinCol = done ? '#16A34A' : '#FF9900';
-    const dest = '<g transform="translate(' + g.x1.toFixed(1) + ' ' + g.y1.toFixed(1) + ')"><path d="M0 0C-9 -9 -14 -15 -14 -22a14 14 0 0128 0c0 7-5 13-14 22z" fill="' + pinCol + '" stroke="#fff" stroke-width="2"/>' + ic(done ? 'check' : (o.lockerId ? C.typeIcon(locker(o.lockerId)) : 'house'), 16).replace('<svg ', '<svg x="-8" y="-30" style="color:#fff" ') + '<text y="14" text-anchor="middle" class="tm-lab">' + esc(g.dest.short) + '</text></g>';
-    const dep = '<g transform="translate(' + g.x0.toFixed(1) + ' ' + g.y0.toFixed(1) + ')"><rect x="-13" y="-13" width="26" height="26" rx="8" fill="#fff" stroke="#131A22" stroke-width="2.500"/>' + ic('store', 16).replace('<svg ', '<svg x="-8" y="-8" style="color:#131A22" ') + '<text y="-20" text-anchor="middle" class="tm-lab">Centro logístico</text></g>';
-    return '<div class="tmap st-' + o.status + '" id="tmap" data-p="' + p.toFixed(3) + '"><svg viewBox="0 0 ' + g.W + ' ' + g.H + '" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Recorrido del camión desde el centro logístico hasta ' + esc(g.dest.name) + '"><rect width="360" height="250" fill="#EDEFF2"/><path d="M0 200 Q90 170 170 196 T360 176 V250 H0Z" fill="#DCE7F3"/><rect x="250" y="20" width="84" height="56" rx="12" fill="#D5EBD2"/><rect x="18" y="150" width="60" height="46" rx="12" fill="#D5EBD2"/>' +
-      '<g stroke="#fff" stroke-width="10" fill="none" stroke-linecap="round"><path d="M-10 60H380M-10 130H380M-10 200H380M60 -10V260M150 -10V260M240 -10V260M320 -10V260"/></g><g stroke="#fff" stroke-width="4" fill="none"><path d="M-10 95H380M-10 165H380M105 -10V260M195 -10V260M280 -10V260"/></g>' +
-      '<path id="trk-base" d="' + g.d + '" pathLength="1" fill="none" stroke="#9AA7B8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 0"/><path id="trk-done" d="' + g.d + '" pathLength="1" fill="none" stroke="#1D63C9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="' + p.toFixed(3) + ' 1"/>' + dep + dest + trk + '</svg>' +
+    const g = trackGeo(o), p = trackP(o), t = trackText(o, g), done = o.status === 'ready' || o.status === 'pickedUp', st = g.pts[0];
+    const trk = '<g id="trk" transform="translate(' + st[0].toFixed(1) + ' ' + st[1].toFixed(1) + ')"><circle class="trk-ring" r="20"/><circle r="15" fill="#131A22" stroke="#fff" stroke-width="3"/>' + ic('truck', 20).replace('<svg ', '<svg x="-10" y="-10" style="color:#fff" ') + '</g>';
+    const pinCol = done ? '#16A34A' : '#FF9900', d = g.pts[g.pts.length - 1];
+    const dest = '<g transform="translate(' + d[0].toFixed(1) + ' ' + d[1].toFixed(1) + ')"><path d="M0 0C-9 -9 -14 -15 -14 -22a14 14 0 0128 0c0 7-5 13-14 22z" fill="' + pinCol + '" stroke="#fff" stroke-width="2"/>' + ic(done ? 'check' : (o.lockerId ? C.typeIcon(locker(o.lockerId)) : 'house'), 16).replace('<svg ', '<svg x="-8" y="-30" style="color:#fff" ') + '<text y="14" text-anchor="middle" class="tm-lab">' + esc(g.dest.short) + '</text></g>';
+    const dep = '<g transform="translate(' + st[0].toFixed(1) + ' ' + st[1].toFixed(1) + ')"><rect x="-13" y="-13" width="26" height="26" rx="8" fill="#fff" stroke="#131A22" stroke-width="2.500"/>' + ic('store', 16).replace('<svg ', '<svg x="-8" y="-8" style="color:#131A22" ') + '<text y="26" text-anchor="middle" class="tm-lab">Centro logístico · Ezeiza</text></g>';
+    const hub = '<g transform="translate(' + g.hub[0].toFixed(1) + ' ' + g.hub[1].toFixed(1) + ')"><rect x="-9" y="-9" width="18" height="18" rx="6" fill="#fff" stroke="#131A22" stroke-width="2"/>' + ic('box', 12).replace('<svg ', '<svg x="-6" y="-6" style="color:#131A22" ') + '<text x="14" y="4" class="tm-lab" text-anchor="start">Base de reparto</text></g>';
+    return '<div class="tmap st-' + o.status + '" id="tmap"><svg viewBox="0 0 ' + g.W + ' ' + g.H + '" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Recorrido del camión desde Ezeiza hasta ' + esc(g.dest.name) + '"><rect width="360" height="320" fill="#EDEFF2"/>' +
+      '<polygon points="' + g.caba + '" fill="#F8F9FB" stroke="#9AA7B8" stroke-width="1.500" stroke-dasharray="4 3"/><text x="' + (g.pts[6][0] + 70).toFixed(0) + '" y="' + (g.pts[6][1] - 70).toFixed(0) + '" class="tm-city">CABA</text>' +
+      '<path d="M360 40 L292 150 L360 190Z" fill="#DCE7F3"/>' +
+      '<g stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round"><path d="M-10 60H380M-10 130H380M-10 200H380M-10 270H380M60 -10V330M150 -10V330M240 -10V330M320 -10V330"/></g>' +
+      '<path id="trk-base" d="' + g.d + '" pathLength="1" fill="none" stroke="#9AA7B8" stroke-width="4.500" stroke-linecap="round" stroke-linejoin="round"/><path id="trk-done" d="' + g.d + '" pathLength="1" fill="none" stroke="#1D63C9" stroke-width="5.500" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="' + p.toFixed(3) + ' 1"/>' + dep + hub + dest + trk + '</svg>' +
       '<div class="tm-card"><span class="tm-ic">' + ic(o.status === 'preparing' ? 'box' : (done ? 'check' : 'truck'), 22) + '</span><div><strong id="tm-title">' + esc(t[0]) + '</strong><span id="tm-sub">' + esc(t[1]) + '</span></div><b id="tm-eta">' + esc(t[2]) + '</b></div></div>';
   }
-  window.TRACK = { geo: trackGeo, progress: trackP };
+  window.TRACK = { geo: trackGeo, progress: trackP, places: PLACES };
 
   SC.tracking = {
     render(p) {
