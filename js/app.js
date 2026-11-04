@@ -365,6 +365,7 @@
       const o = orderOf(el.dataset.id); el.classList.add('hit');
       later(() => { if (o.status === 'ready') R.replace('validate', { id: o.id, phase: 'wait' }); else R.go('codeError', { id: o.id }); }, 450);
     },
+    openKiosk() { window.KIOSK.open(); },
     toManual(el) { L.code = ''; L.codeErr = ''; R.go('manualCode', { id: el.dataset.id }); },
     showMyCode(el) { const o = orderOf(el.dataset.id); UI.sheet('<div class="center"><p class="muted">Tu código de retiro es</p><div class="bigcode">' + o.code.slice(0, 3) + ' ' + o.code.slice(3) + '</div><p class="muted">Lo ves siempre en Mis pedidos, en “Ver código de retiro”.</p></div>', { title: '¿Dónde veo mi código?' }); },
     validateCode(el) {
@@ -517,6 +518,7 @@
       if (a === 'next' && o) { C.advanceOrder(o); rerender(); }
       if (a === 'jump' && o && d.to) { C.advanceOrder(o, d.to); rerender(); }
       if (a === 'ready') this.createReady();
+      if (a === 'kiosk') window.KIOSK.open();
       if (a === 'reset') { if (this.armed) C.resetAll(); else { this.armed = true; setTimeout(() => { this.armed = false; this.refresh(); }, 4000); } }
       if (a === 'go') { S().nav = [{ name: d.to, params: {} }]; R.dir = 'fade'; render(); }
       if (a === 'start') this.taskStart(d.id);
@@ -555,7 +557,7 @@
       this.el.innerHTML = '<div class="fac-h"><strong>Panel del facilitador</strong><button data-f="toggle" aria-label="Ocultar panel">' + ic('close', 18) + '</button></div>' +
         '<p class="fac-n">Esto no lo ve quien prueba. Mostralo solo si hace falta (<kbd>Shift</kbd>+<kbd>F</kbd> lo oculta).</p>' +
         '<section><h4>Pedido activo</h4>' + (o ? '<p class="fst"><b>' + (labels[o.status] || 'Entregado') + '</b> · ' + (o.delivery === 'locker' ? 'Locker' : 'Domicilio') + '</p><div class="fbtns"><button class="pri" data-f="next"' + (C.statusIdx(o) >= seq.length - 1 ? ' disabled' : '') + '>Avanzar estado →</button></div><select id="f-status" aria-label="Saltar a estado">' + seq.map(s => '<option value="' + s + '"' + (s === o.status ? ' selected' : '') + '>' + (labels[s] || 'Entregado') + '</option>').join('') + '</select>' : '<p class="fst muted">No hay pedidos en curso. Completá una compra o creá un pedido listo.</p>') +
-        '<div class="fbtns"><button data-f="ready">Crear pedido listo para retirar</button></div></section>' +
+        '<div class="fbtns"><button data-f="ready">Crear pedido listo para retirar</button><button data-f="kiosk">Abrir pantalla del locker</button></div></section>' +
         '<section><h4>Avance automático</h4><p class="fst muted">El pedido avanza solo cada ~7 s hasta “Listo para retirar”. Apagalo si querés controlarlo vos.</p><div class="fbtns"><button data-f="auto">' + (S().auto === false ? 'Apagado · Encender' : 'Encendido · Apagar') + '</button></div></section>' +
         '<section><h4>Ir a</h4><div class="fbtns"><button data-f="go" data-to="home">Inicio</button><button data-f="go" data-to="orders">Pedidos</button><button data-f="go" data-to="lockerTab">Locker</button></div></section>' +
         '<section><h4>Tareas</h4>' + tasks + '</section>' +
@@ -587,6 +589,17 @@
 
   /* ---------- Boot ---------- */
   window.APP = { render, rerender, refreshBadges };
+  /* Eventos que llegan desde la pantalla del locker (kiosco) */
+  window.APP.onKiosk = function (ev, o) {
+    if (!o) return;
+    const cur = R.cur();
+    if (ev === 'opened') {
+      if (cur.name === 'scan' || cur.name === 'pickupCode') R.replace('open', { id: o.id }); else if (cur.name !== 'open') R.go('open', { id: o.id });
+      C.notify({ type: 'info', orderId: o.id, title: 'Se abrió tu casillero', body: 'Retirá tu paquete del casillero ' + o.compartment + ' y cerrá la puerta.' });
+    }
+    if (ev === 'closed') { R.replace('retrieved', { id: o.id }); }
+    if (ev === 'closedPanel' && o.status === 'ready' && cur.name === 'scan') { /* volvió a la app sin abrir: queda en "En el locker" */ }
+  };
   function fitPhone() {
     const ph = $('#phone'); if (!ph) return;
     const small = window.matchMedia('(max-width: 600px)').matches;

@@ -553,9 +553,12 @@
      ============================================================ */
   SC.scan = {
     render(p) {
-      const body = '<div class="pad-x center"><button type="button" class="viewfinder" data-act="doScan" data-id="' + p.id + '" aria-label="Escanear código QR del locker"><span class="vf-cam"><span class="vf-screen"><b>Hola, recogé aquí tu pedido</b>' + C.qr('locker-screen', 64) + '</span></span><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i><u class="line"></u></button>' +
-        '<p class="lead">Acercá el código QR a la pantalla del locker.</p><button type="button" class="link" data-act="toManual" data-id="' + p.id + '">o ingresá el código numérico</button><p class="proto-hint">Tocá el visor para simular el escaneo</p></div>';
-      return UI.page({ header: UI.hdr({ title: 'Escanear código' }), body, footer: UI.btn('Ingresar código', 'toManual', { kind: 'dark', data: { id: p.id } }), cls: 'scan' });
+      const o = S().orders.find(x => x.id === p.id);
+      const body = '<div class="pad-x center"><p class="lead">Estás frente al locker. Abrí tu casillero de una de estas dos formas:</p>' +
+        '<div class="qr-card sm">' + C.qr(o.code + o.id, 170) + '<div class="qr-code"><span>Código numérico</span><strong>' + o.code.slice(0, 3) + ' ' + o.code.slice(3) + '</strong></div></div>' +
+        '<ol class="two-ways"><li><span>1</span><div><strong>Escanealo en el lector</strong><em>Acercá este QR al lector que está debajo de la pantalla, con la luz roja.</em></div></li><li><span>2</span><div><strong>O escribí el código</strong><em>Tocá “Retirar mi pedido” en la pantalla del locker e ingresá los 6 números.</em></div></li></ol></div><div class="sp-lg"></div>';
+      const footer = UI.btn('Abrir pantalla del locker', 'openKiosk', { icon: 'locker', data: { id: p.id } }) + '<p class="proto-note">Simulación: abre la pantalla táctil del locker al lado de la app.</p>';
+      return UI.page({ header: UI.hdr({ title: 'En el locker' }), body, footer, cls: 'scan' });
     }
   };
   SC.manualCode = {

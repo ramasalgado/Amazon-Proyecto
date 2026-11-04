@@ -37,3 +37,15 @@ Es un sitio estático: la raíz del repo ya es el sitio (`index.html`).
 **GitHub Pages**: *Settings → Pages → Build and deployment → Deploy from a branch →* rama `claude/functional-web-prototype-enzx5o`, carpeta `/ (root)`. El link queda `https://ramasalgado.github.io/Amazon-Proyecto/`.
 - **Lockers en toda la Ciudad**: 48 barrios de CABA y 119 lockers. En "Seleccionar locker" (y en la pestaña Locker) se elige el barrio con "Estás en … Cambiar" o "Usar mi ubicación"; las distancias, la lista y el mapa se recalculan desde ese barrio. Los barrios son aproximados; los comercios, direcciones y disponibilidad son ilustrativos.
 - **Mapa del camión** en el seguimiento del pedido: sale del centro logístico de Ezeiza, pasa por una base de reparto en la Ciudad y avanza hacia el locker (o el domicilio). Cambia con cada estado y, en tránsito, muestra el barrio por el que pasa, los km restantes y los minutos.
+
+## Pantalla táctil del locker (kiosco de 17")
+Se abre desde el celular con **En el locker → Abrir pantalla del locker** (o desde el panel del facilitador). En escritorio aparece al lado de la app y se sincronizan; en celular ocupa toda la pantalla.
+
+Reglas del sistema:
+- **Dos formas de abrir**: escanear el QR de la app en el lector (luz roja, debajo de la pantalla) o ingresar los 6 dígitos con el teclado numérico.
+- **Validación**: solo abre pedidos "Listo para retirar", dentro de las 72 h y de **ese** locker.
+- **Errores**: código incorrecto (te quedan N intentos) → 3 intentos fallidos pausan la pantalla 30 s; pedido ya retirado; pedido todavía no listo; plazo vencido; pedido de otro locker; casillero que no abre (reintentar o soporte).
+- **Casillero abierto**: se resalta el casillero en el esquema del locker y se espera el cierre de la puerta.
+- **Cierre de puerta** → el pedido pasa a "Retirado" y la app muestra "Retiro completado".
+- **Inactividad**: a los 40 s sin tocar la pantalla vuelve al inicio.
+- Controles de simulación (debajo del kiosco): "Simular lectura del QR" y "Simular: cerré la puerta".
