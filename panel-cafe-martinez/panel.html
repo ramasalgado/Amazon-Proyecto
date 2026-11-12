@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<title>Café Martinez – Panel A2</title>
+<style>
+@page{size:420mm 594mm;margin:0}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:420mm;height:594mm;background:#fff}
+body{font-family:'Inter',sans-serif;color:#111;position:relative;overflow:hidden}
+.sec{position:absolute;left:0;width:420mm;overflow:hidden}
+svg{display:block}
+/* HERO */
+#hero{top:0;height:255mm;background:
+  radial-gradient(circle at 78% 18%,#e9b878 0 3%,transparent 9%),
+  radial-gradient(circle at 92% 30%,#f3d6a4 0 2%,transparent 7%),
+  radial-gradient(circle at 62% 10%,#fff2d6 0 4%,transparent 10%),
+  radial-gradient(circle at 50% 28%,#c98a4a 0 2%,transparent 6%),
+  linear-gradient(100deg,#fbf7f0 0%,#f4e9d8 32%,#8a5a35 62%,#3b2415 100%)}
+#hero .table{position:absolute;left:0;right:0;bottom:0;height:58mm;
+  background:linear-gradient(180deg,#5a3418 0%,#8a5328 35%,#6e4120 100%)}
+#hero .table::before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(176deg,rgba(255,220,170,.10) 0 1.2mm,transparent 1.2mm 6mm)}
+#hero .table::after{content:"";position:absolute;left:0;right:0;top:0;height:14mm;
+  background:linear-gradient(180deg,rgba(255,225,180,.45),transparent)}
+.logo{position:absolute;left:22mm;top:22mm}
+.logo .cafe{font-weight:500;font-size:9mm;letter-spacing:6mm;margin-left:1mm}
+.logo .mart{font-weight:900;font-size:34mm;letter-spacing:-.8mm;line-height:.95}
+.rule{position:absolute;left:22mm;top:84mm;width:14mm;height:.8mm;background:#111}
+h1{position:absolute;left:22mm;top:94mm;font-weight:900;font-size:16mm;line-height:1.02;letter-spacing:-.3mm;text-transform:uppercase;width:150mm}
+.lead{position:absolute;left:22mm;top:164mm;width:105mm;font-size:4.8mm;line-height:1.4;color:#333}
+#hero .org{position:absolute;right:-6mm;bottom:32mm;width:262mm}
+#hero .cup{position:absolute;left:62mm;bottom:8mm;width:96mm}
+/* BAND */
+#band{top:255mm;height:118mm;background:#e9e5de}
+#band h2{position:absolute;left:22mm;top:22mm;font-weight:900;font-size:13mm;line-height:1.05;text-transform:uppercase;letter-spacing:-.2mm;width:120mm}
+#band p{position:absolute;left:22mm;top:62mm;width:105mm;font-size:5.2mm;line-height:1.4;color:#444}
+.det{position:absolute;top:14mm;width:66mm;text-align:center}
+.det .c{width:66mm;height:66mm;border-radius:50%;overflow:hidden;border:.6mm solid #111;background:#d9cdbb}
+.det span{display:block;margin-top:6mm;font-size:4.6mm;font-weight:600;letter-spacing:.5mm;text-transform:uppercase;color:#222}
+/* BOTTOM */
+#bottom{top:373mm;height:207mm;background:
+  radial-gradient(circle at 20% 22%,#d8a868 0 4%,transparent 11%),
+  radial-gradient(circle at 70% 14%,#f1d3a0 0 3%,transparent 9%),
+  radial-gradient(circle at 92% 30%,#b9783d 0 3%,transparent 8%),
+  linear-gradient(180deg,#6a4426 0%,#3b2415 55%,#2a190d 100%)}
+#bottom .table{position:absolute;left:0;right:0;bottom:0;height:100mm;
+  background:linear-gradient(180deg,#a8672f 0%,#7d4a22 40%,#5a3418 100%)}
+#bottom .table::before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(177deg,rgba(255,220,170,.10) 0 1.2mm,transparent 1.2mm 7mm)}
+#bottom .table::after{content:"";position:absolute;left:0;right:0;top:0;height:16mm;
+  background:linear-gradient(180deg,rgba(255,225,180,.5),transparent)}
+#bottom .org{position:absolute;left:50%;transform:translateX(-50%);bottom:34mm;width:300mm}
+#bottom .plant{position:absolute;left:8mm;bottom:70mm;width:60mm}
+#bottom .tag{position:absolute;right:22mm;top:20mm;text-align:right;color:#fff4e2}
+#bottom .tag b{display:block;font-weight:900;font-size:11mm;line-height:1.05;text-transform:uppercase}
+#bottom .tag i{display:block;margin-top:4mm;font-style:normal;font-size:5mm;color:#e9d3b2}
+/* FOOTER */
+#foot{top:580mm;height:14mm;background:#000;color:#fff;display:flex;align-items:center;padding:0 22mm;font-weight:700;font-size:5mm}
+</style></head><body>
+
+<!-- ===== Símbolos reutilizables ===== -->
+<svg width="0" height="0" style="position:absolute"><defs>
+ <symbol id="organizer" viewBox="0 0 600 300">
+  <ellipse cx="300" cy="283" rx="300" ry="16" fill="#000" opacity=".35"/>
+  <!-- servilletas kraft -->
+  <g>
+   <polygon points="288,118 566,70 566,92 288,140" fill="#8f6a45"/>
+   <polygon points="288,112 566,64 566,86 288,134" fill="#b98e62"/>
+   <polygon points="292,92 560,44 560,66 292,114" fill="#c79d70"/>
+   <polygon points="296,66 556,18 556,40 296,88" fill="#d3ab7f"/>
+   <polygon points="296,66 556,18 540,16 300,60" fill="#e0bd93"/>
+   <text transform="translate(420,68) rotate(-10)" font-family="Inter" font-weight="900" font-size="24" fill="#3a2a1c" text-anchor="middle" opacity=".85">MARTINEZ</text>
+   <text transform="translate(420,48) rotate(-10)" font-family="Inter" font-weight="600" font-size="9" fill="#3a2a1c" text-anchor="middle" letter-spacing="4" opacity=".85">CAFÉ</text>
+  </g>
+  <!-- sobres de azúcar -->
+  <g>
+   <g transform="rotate(-9 70 150)"><rect x="42" y="82" width="62" height="74" rx="3" fill="#f06aa6"/><rect x="42" y="82" width="62" height="7" rx="3" fill="#d94f8d"/></g>
+   <g transform="rotate(-4 120 150)"><rect x="90" y="76" width="64" height="76" rx="3" fill="#f58cbc"/><rect x="90" y="76" width="64" height="7" rx="3" fill="#e0609a"/></g>
+   <g transform="rotate(2 170 150)"><rect x="140" y="80" width="64" height="72" rx="3" fill="#f27bb2"/><rect x="140" y="80" width="64" height="7" rx="3" fill="#d94f8d"/></g>
+   <g transform="rotate(8 220 150)"><rect x="190" y="88" width="62" height="66" rx="3" fill="#f69dc6"/><rect x="190" y="88" width="62" height="7" rx="3" fill="#e0609a"/></g>
+   <path d="M146 112c-6-8-3-18 4-18 5 0 7 4 8 8 1-4 4-8 9-8 7 0 10 10 4 18l-13 15z" fill="none" stroke="#fff" stroke-width="3" opacity=".9" transform="scale(.8) translate(58 28)"/>
+  </g>
+  <!-- panel izquierdo (azúcar + QR) -->
+  <g stroke="#101010" stroke-width="14" stroke-linejoin="round">
+   <polygon points="27,150 262,150 262,268 27,268" fill="#161616"/>
+   <polygon points="282,126 566,76 566,268 282,268" fill="#161616"/>
+  </g>
+  <polygon points="34,157 255,157 255,172 34,172" fill="#fff" opacity=".06"/>
+  <polygon points="289,134 559,86 559,100 289,148" fill="#fff" opacity=".07"/>
+  <rect x="270" y="150" width="14" height="118" fill="#000"/>
+  <!-- QR -->
+  <rect x="104" y="172" width="78" height="78" rx="6" fill="#fff"/>
+  <g id="qr" transform="translate(110 178)"></g>
+  <!-- logo -->
+  <g transform="translate(424 188) rotate(-5.5)">
+   <text x="-4" y="66" font-family="Inter" font-weight="900" font-size="150" fill="none" stroke="#fff" stroke-width="1.6" opacity=".8" text-anchor="middle">M</text>
+   <text x="14" y="-20" font-family="Inter" font-weight="600" font-size="13" fill="#fff" text-anchor="middle" letter-spacing="6">CAFÉ</text>
+   <text x="0" y="22" font-family="Inter" font-weight="900" font-size="44" fill="#fff" text-anchor="middle" letter-spacing="-1">MARTINEZ</text>
+  </g>
+  <!-- patas -->
+  <rect x="50" y="268" width="26" height="9" rx="3" fill="#050505"/><rect x="520" y="268" width="26" height="9" rx="3" fill="#050505"/>
+ </symbol>
+
+ <symbol id="organizer-front" viewBox="0 0 600 260">
+  <ellipse cx="300" cy="244" rx="300" ry="14" fill="#000" opacity=".4"/>
+  <!-- servilletas (vista frontal, apiladas) -->
+  <g>
+   <polygon points="40,150 305,150 305,70 44,86" fill="#caa273"/>
+   <polygon points="44,86 305,70 296,62 60,74" fill="#e2bf93"/>
+   <g stroke="#a9825a" stroke-width="1.2" opacity=".7"><line x1="46" y1="98" x2="305" y2="84"/><line x1="46" y1="112" x2="305" y2="100"/><line x1="46" y1="126" x2="305" y2="116"/><line x1="46" y1="140" x2="305" y2="132"/></g>
+  </g>
+  <!-- sobres rosados en perspectiva -->
+  <g>
+   <polygon points="318,76 540,40 560,118 330,150" fill="#f27bb2"/>
+   <polygon points="330,60 520,30 540,40 318,76" fill="#f9a7cd"/>
+   <polygon points="344,50 504,22 522,30 330,60" fill="#fcc3dc"/>
+   <g stroke="#d94f8d" stroke-width="1.5" opacity=".7"><line x1="332" y1="86" x2="548" y2="52"/><line x1="334" y1="104" x2="552" y2="72"/><line x1="336" y1="122" x2="556" y2="92"/></g>
+  </g>
+  <!-- cuerpo negro -->
+  <g stroke="#101010" stroke-width="14" stroke-linejoin="round">
+   <polygon points="30,150 308,150 308,226 30,226" fill="#161616"/>
+   <polygon points="324,150 560,120 586,226 324,226" fill="#161616"/>
+  </g>
+  <rect x="36" y="156" width="266" height="10" fill="#fff" opacity=".06"/>
+  <g transform="translate(170 196)">
+   <text x="12" y="-20" font-family="Inter" font-weight="600" font-size="10" fill="#fff" text-anchor="middle" letter-spacing="5">CAFÉ</text>
+   <text x="0" y="14" font-family="Inter" font-weight="900" font-size="48" fill="#fff" text-anchor="middle" letter-spacing="-1">MARTINEZ</text>
+   <text x="-4" y="30" font-family="Inter" font-weight="900" font-size="110" fill="none" stroke="#fff" stroke-width="1.2" opacity=".7" text-anchor="middle" transform="translate(0 -4)">M</text>
+  </g>
+  <rect x="400" y="150" width="78" height="78" rx="6" fill="#fff" transform="rotate(-4 440 189)"/><g id="qr2" transform="translate(406 156) rotate(-4 34 34)"></g>
+  <rect x="48" y="226" width="30" height="9" rx="3" fill="#050505"/><rect x="520" y="226" width="30" height="9" rx="3" fill="#050505"/>
+ </symbol>
+
+ <symbol id="cup" viewBox="0 0 400 230">
+  <ellipse cx="190" cy="196" rx="190" ry="30" fill="#000" opacity=".25"/>
+  <ellipse cx="190" cy="180" rx="188" ry="34" fill="#f2efe9"/><ellipse cx="190" cy="176" rx="150" ry="24" fill="#e1dcd2"/>
+  <path d="M96 70h188c0 70-30 112-94 112S96 140 96 70z" fill="#fbfaf7"/>
+  <path d="M284 84c44-6 52 34 14 52-6 3-12 4-18 5l4-14c22-8 20-26-4-24z" fill="#f2efe9"/>
+  <ellipse cx="190" cy="70" rx="94" ry="20" fill="#f6f4ef"/><ellipse cx="190" cy="72" rx="80" ry="15" fill="#5a3418"/>
+  <ellipse cx="170" cy="70" rx="40" ry="6" fill="#c89b6a" opacity=".6"/>
+  <text x="190" y="146" font-family="Inter" font-weight="600" font-size="9" fill="#111" text-anchor="middle" letter-spacing="3">CAFÉ</text>
+  <text x="190" y="164" font-family="Inter" font-weight="900" font-size="22" fill="#111" text-anchor="middle">MARTINEZ</text>
+ </symbol>
+
+ <symbol id="plant" viewBox="0 0 200 300">
+  <g fill="#3f7a2e"><ellipse cx="60" cy="90" rx="22" ry="62" transform="rotate(-38 60 90)"/><ellipse cx="140" cy="80" rx="22" ry="66" transform="rotate(35 140 80)"/><ellipse cx="100" cy="60" rx="20" ry="68"/></g>
+  <g fill="#5fa046"><ellipse cx="80" cy="100" rx="14" ry="48" transform="rotate(-18 80 100)"/><ellipse cx="124" cy="96" rx="14" ry="50" transform="rotate(20 124 96)"/></g>
+  <path d="M50 170h100l-14 120H64z" fill="#2a2a2a"/><rect x="44" y="164" width="112" height="14" rx="4" fill="#3a3a3a"/>
+ </symbol>
+</defs></svg>
+
+<!-- ===== HERO ===== -->
+<section class="sec" id="hero">
+  <div class="table"></div>
+  <div class="logo"><div class="cafe">CAFÉ</div><div class="mart">MARTINEZ</div></div>
+  <div class="rule"></div>
+  <h1>Pequeños detalles, grandes encuentros.</h1>
+  <p class="lead">Un organizador funcional y elegante que acompaña la experiencia de café, manteniendo todo al alcance y en armonía con la identidad de la marca.</p>
+  <svg class="cup" viewBox="0 0 400 230"><use href="#cup"/></svg>
+  <svg class="org" viewBox="0 0 600 300"><use href="#organizer"/></svg>
+</section>
+
+<!-- ===== BANDA ===== -->
+<section class="sec" id="band">
+  <h2>Diseño que organiza y conecta</h2>
+  <p>Un objeto simple y robusto que ordena los elementos esenciales del café, integrando la identidad de la marca en cada detalle.</p>
+  <div class="det" style="left:160mm"><div class="c"><svg viewBox="0 0 600 300" width="100%" height="100%" style="background:#d9cdbb"><svg viewBox="440 0 190 190" width="600" height="300"/><use href="#organizer" x="-1010" y="-120" width="1500" height="750"/></svg></div><span>Aristas redondeadas</span></div>
+  <div class="det" style="left:240mm"><div class="c" style="background:#111"><svg viewBox="330 60 190 190" width="100%" height="100%"><use href="#organizer" width="600" height="300"/></svg></div><span>Gráfica integrada</span></div>
+  <div class="det" style="left:320mm"><div class="c" style="background:#111"><svg viewBox="40 120 190 190" width="100%" height="100%"><use href="#organizer" width="600" height="300"/></svg></div><span>Código QR</span></div>
+</section>
+
+<!-- ===== INFERIOR ===== -->
+<section class="sec" id="bottom">
+  <div class="table"></div>
+  <div class="tag"><b>Todo al alcance<br>de tu mano</b><i>Servilletas · Azúcar · Identidad de marca</i></div>
+  <svg class="plant" viewBox="0 0 200 300"><use href="#plant"/></svg>
+  <svg class="org" viewBox="0 0 600 260"><use href="#organizer-front"/></svg>
+</section>
+
+<footer class="sec" id="foot">Santiago Martinez Salgado cotrone - Cátedra Lerner - Diseño Industrial I - 2026</footer>
+
+<script>
+// Patrón tipo QR decorativo (reemplazar por el QR real del proyecto)
+(function(){
+ const N=21,s=3.1,g=document.getElementById('qr'),g2=document.getElementById('qr2');let h='';
+ let seed=7;const r=()=>(seed=(seed*16807)%2147483647)/2147483647;
+ const finder=(x,y)=>x<7&&y<7||x>=N-7&&y<7||x<7&&y>=N-7;
+ for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+  let on;
+  if(finder(x,y)){const lx=x%(N-7>x?7:100),a=x<7?x:x-(N-7),b=y<7?y:y-(N-7);
+   on=a==0||a==6||b==0||b==6||(a>=2&&a<=4&&b>=2&&b<=4);}
+  else on=r()>.5;
+  if(on)h+=`<rect x="${x*s}" y="${y*s}" width="${s}" height="${s}" fill="#111"/>`;
+ }
+ g.innerHTML=h;g2.innerHTML=h;
+})();
+</script>
+</body></html>
