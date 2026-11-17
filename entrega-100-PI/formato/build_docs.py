@@ -92,8 +92,8 @@ CSS="""
 *{box-sizing:border-box}
 body{font-family:Arial,'Liberation Sans',sans-serif;font-size:11pt;line-height:1.5;text-align:justify;color:#000;margin:0}
 p{margin:0 0 8pt;text-align:justify}
-h2{font-size:14pt;line-height:1.5;margin:14pt 0 4pt;text-align:left;break-after:avoid}
-h3{font-size:12pt;line-height:1.5;margin:10pt 0 3pt;text-align:left;break-after:avoid}
+h2{font-size:14pt;line-height:1.5;margin:14pt 0 4pt;text-align:left;break-after:avoid;color:#1E6FD9}
+h3{font-size:12pt;line-height:1.5;margin:10pt 0 3pt;text-align:left;break-after:avoid;color:#1E6FD9}
 ul{margin:0 0 8pt;padding-left:18pt}li{margin:0 0 4pt;text-align:justify}
 table{width:100%;border-collapse:collapse;margin:6pt 0 10pt;font-size:11pt;line-height:1.3;text-align:left;break-inside:avoid}
 th,td{border:.6pt solid #000;padding:3pt 5pt;vertical-align:top;text-align:left}
