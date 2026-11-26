@@ -79,6 +79,11 @@
 
   .pend { border: 1.5px dashed #b9bcc7; border-radius: 2mm; height: 50mm; display:flex; align-items:center; justify-content:center;
           text-align:center; color: var(--muted); font-size: 8.5pt; background:#fafafc; padding: 4mm; }
+  .m3grid { display:grid; grid-template-columns: 76mm 76mm; gap: 5mm 10mm; justify-content:center; }
+  .m3grid .txt { display:flex; align-items:center; font-size:10pt; }
+  .m3grid .txt p { margin:0; }
+  .ph figure { margin:0; }
+  .ph figcaption { font-size:8.5pt; margin-top:2mm; }
 </style>
 </head>
 <body>
@@ -126,8 +131,7 @@
       <li><span>• Panel de prototipo</span><span>Pág. 11</span></li>
       <li><span>• Materiales, procesos y medidas</span><span>Pág. 12</span></li>
       <li><span>• Proceso de fabricación</span><span>Pág. 13</span></li>
-      <li><span>• Bibliografía y referencias</span><span>Pág. 14</span></li>
-      <li><span>• Reflexión personal</span><span>Pág. 15</span></li>
+      <li><span>• Reflexión personal</span><span>Pág. 14</span></li>
     </ul>
   </div>
 </section>
@@ -184,14 +188,13 @@
 <!-- 7. MOMENTO 3 -->
 <section class="page">
   <div class="hdr"><h1>Entrega del Momento 3</h1><div class="dots"></div><div class="sub">Versión negra con vinilo</div></div>
-  <div class="body">
-    <p>En el Momento 3 el organizador se compactó (145 × 90 × 45 mm) y pasó a <b>chapa de acero SAE 1010 de 0,5 mm</b> con pintura en polvo negra. Se sumaron patas impresas en 3D, un divisor interno y la marca resuelta con <b>vinilo de alta densidad</b> sobre la chapa, con el QR en el lateral.</p>
-    <div class="grid3" style="margin-top:4mm">
-      <figure class="frame"><img src="img/m3_publicitario.jpg" style="width:100%;display:block"></figure>
-      <figure class="frame"><img src="img/m3_tecnologico.jpg" style="width:100%;display:block"></figure>
-      <figure class="frame"><img src="img/m3_prototipo.jpg" style="width:100%;display:block"></figure>
+  <div class="body" style="padding-top:8mm">
+    <div class="m3grid">
+      <figure style="margin:0"><div class="frame"><img src="img/m3_publicitario.jpg" style="width:100%;display:block"></div><figcaption>Panel publicitario M3</figcaption></figure>
+      <figure style="margin:0"><div class="frame"><img src="img/m3_tecnologico.jpg" style="width:100%;display:block"></div><figcaption>Panel tecnológico M3</figcaption></figure>
+      <figure style="margin:0"><div class="frame"><img src="img/m3_prototipo.jpg" style="width:100%;display:block"></div><figcaption>Panel de prototipo M3</figcaption></figure>
+      <div class="txt"><p>En el Momento 3 el organizador se compactó (145 × 90 × 45 mm) y pasó a <b>chapa de acero SAE 1010 de 0,5 mm</b> con pintura en polvo negra. Se sumaron patas impresas en 3D, un divisor interno y la marca resuelta con <b>vinilo de alta densidad</b> sobre la chapa, con el QR en el lateral.</p></div>
     </div>
-    <div class="grid3"><figcaption>Panel publicitario M3</figcaption><figcaption>Panel tecnológico M3</figcaption><figcaption>Panel de prototipo M3</figcaption></div>
   </div>
   <div class="ftr"><span>Diseño Industrial I · Cátedra: Lerner</span><span>Santiago Martínez Salgado Cotrone</span></div>
 </section>
@@ -201,12 +204,6 @@
   <div class="hdr"><h1>Rediseño M4</h1><div class="dots"></div><div class="sub">Qué cambió y por qué</div></div>
   <div class="body">
     <p>El rediseño se orientó a facilitar la <b>producción en cantidad</b>: menos materiales, menos operaciones manuales y la marca resuelta dentro del propio proceso de fabricación.</p>
-    <div class="grid2" style="margin: 3mm 0 1mm">
-      <figure class="frame crop"><div style="overflow:hidden;aspect-ratio:700/400"><img src="img/m3_prototipo.jpg" style="width:202%;max-width:none;margin-left:-4.3%;margin-top:-116.4%"></div></figure>
-      <figure class="frame crop"><div style="overflow:hidden;aspect-ratio:700/400"><img src="img/m4_prototipo.jpg" style="width:202%;max-width:none;margin-left:-4.3%;margin-top:-116.4%"></div></figure>
-    </div>
-    <div class="grid2"><figcaption>Momento 3 · gráfica con vinilo</figcaption><figcaption>Momento 4 · logo calado y acrílico</figcaption></div>
-
     <table>
       <tr><th style="width:23%">Aspecto</th><th style="width:25%">M3</th><th style="width:25%">M4</th><th>Razón</th></tr>
       <tr><td><b>Gráfica</b></td><td>Vinilo sobre la chapa</td><td>Se quita el vinilo</td><td>Elimina un material y una operación manual de aplicación.</td></tr>
@@ -255,28 +252,13 @@
 <!-- 13. PROCESO DE FABRICACIÓN -->
 <section class="page">
   <div class="hdr"><h1>Proceso de fabricación</h1><div class="dots"></div><div class="sub">Evidencias del prototipo real</div></div>
-  <div class="body">
-    <p>Registro fotográfico de la construcción del prototipo: corte, plegado, pintura, armado y prueba de uso.</p>
+  <div class="body ph">
+    <p>Registro fotográfico del prototipo real: la chapa sola, el organizador con servilletas y sobres, y la versión con la gráfica agregada.</p>
     <div class="grid2" style="margin-top:4mm">
-      <div class="pend">Foto 1 · corte láser de la chapa<br>(a completar)</div>
-      <div class="pend">Foto 2 · plegado<br>(a completar)</div>
-      <div class="pend">Foto 3 · pintura y patas<br>(a completar)</div>
-      <div class="pend">Foto 4 · armado y acrílico<br>(a completar)</div>
+      <figure><div class="frame"><img src="img/proceso_chapa.jpg" style="width:100%;display:block"></div><figcaption>1 · Chapa plegada, sin gráfica</figcaption></figure>
+      <figure><div class="frame"><img src="img/proceso_servilletas.jpg" style="width:100%;display:block"></div><figcaption>2 · Con servilletas y sobres</figcaption></figure>
     </div>
-  </div>
-  <div class="ftr"><span>Diseño Industrial I · Cátedra: Lerner</span><span>Santiago Martínez Salgado Cotrone</span></div>
-</section>
-
-<!-- 14. BIBLIOGRAFÍA -->
-<section class="page">
-  <div class="hdr"><h1>Bibliografía y referencias</h1><div class="dots"></div><div class="sub">Fuentes consultadas</div></div>
-  <div class="body">
-    <h2>Material de cátedra</h2>
-    <ul><li>Cátedra Lerner, Diseño Industrial I, Universidad de Palermo. <i>(Ficha del PI y material de clase)</i></li></ul>
-    <h2>Referentes y fuentes</h2>
-    <ul><li><i>(A completar: referentes de organizadores de mesa, proveedores, normas o sitios consultados)</i></li></ul>
-    <h2>Herramientas utilizadas</h2>
-    <ul><li><i>(A completar: software de modelado, de renderizado y de edición de paneles)</i></li></ul>
+    <figure style="width:128mm;margin:6mm auto 0"><div class="frame"><img src="img/proceso_grafica.jpg" style="width:100%;display:block"></div><figcaption>3 · Con la gráfica agregada (logo y QR)</figcaption></figure>
   </div>
   <div class="ftr"><span>Diseño Industrial I · Cátedra: Lerner</span><span>Santiago Martínez Salgado Cotrone</span></div>
 </section>
