@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Carpeta M4 – Organizador de mesa Café Martínez</title>
+<style>
+  @page { size: 210mm 297mm; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --dark: #23262e; --red: #e00000; --coral: #ff6f61; --ink: #16181d;
+    --soft: #ececf0; --muted: #5b6070; --line: #d9dbe2;
+  }
+  body { font-family: "Inter", "Helvetica Neue", Arial, sans-serif; color: var(--ink); font-size: 10.5pt; line-height: 1.55; }
+  .page { width: 210mm; height: 297mm; position: relative; overflow: hidden; page-break-after: always; background: #fff; }
+  .page:last-child { page-break-after: auto; }
+
+  /* encabezado y pie */
+  .hdr { height: 40mm; background: var(--dark); position: relative; overflow: hidden;
+         background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.035) 0 6px, transparent 6px 14px); }
+  .hdr::before { content:""; position:absolute; right:-6mm; top:-14mm; width:28mm; height:28mm; border-radius:50%; background: rgba(255,255,255,.12); }
+  .hdr::after  { content:""; position:absolute; right:30mm; top:20mm; width:17mm; height:17mm; border-radius:50%; background: rgba(255,255,255,.1); }
+  .hdr h1 { position:absolute; right:14mm; top:11mm; color:#fff; font-size: 24pt; font-weight: 800; letter-spacing:-.3pt; text-transform: uppercase; z-index:2; }
+  .hdr .dots { position:absolute; left:11mm; right:11mm; top:23mm; border-top: 1.4px dotted var(--red); z-index:2; }
+  .hdr .sub { position:absolute; right:14mm; top:27mm; color: var(--coral); font-size: 12pt; font-style: italic; font-weight: 600; z-index:2; }
+  .ftr { position:absolute; left:18mm; right:18mm; bottom:9mm; border-top: 1px solid var(--line); padding-top: 2.5mm;
+         display:flex; justify-content: space-between; font-size: 7.5pt; color: var(--muted); }
+  .body { padding: 14mm 18mm 0 18mm; }
+
+  h2 { font-size: 12.5pt; font-style: italic; font-weight: 800; margin: 7mm 0 2.5mm; }
+  h2:first-child { margin-top: 0; }
+  p { text-align: justify; margin-bottom: 3mm; }
+  b, strong { font-weight: 700; }
+  ul { margin: 0 0 3mm 5mm; }
+  li { margin-bottom: 1.5mm; }
+  .red { color: var(--red); font-weight: 800; font-style: italic; }
+  figcaption { font-size: 8pt; font-style: italic; color: var(--muted); text-align: center; margin-top: 1.5mm; }
+
+  /* carátula */
+  .cover { border: 1.6px solid #111; position:absolute; inset: 8mm; padding: 22mm 14mm; text-align:center; }
+  .cover .top { font-size: 17pt; font-weight: 800; line-height: 1.3; }
+  .cover .mid { position:absolute; left:0; right:0; top: 80mm; }
+  .cover .mid h3 { font-size: 22pt; font-weight: 800; display:inline-block; padding-bottom: 4mm; border-bottom: 2.4px solid #111; min-width: 70mm; }
+  .cover .mid p { text-align:center; margin-top: 4mm; font-size: 12pt; font-weight: 300; }
+  .cover .who { position:absolute; left:0; right:0; top: 150mm; font-weight: 700; font-size: 11.5pt; line-height: 1.9; }
+  .cover .mat { position:absolute; left:0; right:0; top: 207mm; font-weight: 700; font-size: 11.5pt; line-height: 1.9; }
+  .cover .up { position:absolute; left:50%; bottom: 14mm; transform: translateX(-50%); width: 34mm; height: 34mm; background:#000; color:#fff; padding: 4mm 3mm; text-align:center; }
+  .cover .up .u { font-size: 26pt; font-weight: 900; line-height: 1; letter-spacing: -1pt; margin-top: 2mm; }
+  .cover .up .n { font-size: 7.5pt; font-weight: 800; line-height: 1.15; margin-top: 3mm; }
+
+  /* portada creativa */
+  .pc-img { width: 210mm; overflow: hidden; background:#000; }
+  .pc-img img { display:block; width:100%; margin-top: -73.5%; }
+  .pc { background: #f4f5f7; height: 297mm; }
+  .pc .t { position:absolute; right: 16mm; left: 16mm; top: 150mm; text-align: right; }
+  .pc .t h1 { font-size: 46pt; line-height: .95; font-weight: 900; letter-spacing: -2pt; text-transform: uppercase; }
+  .pc .t .dots { border-top: 2px dotted var(--red); margin: 7mm 0 6mm; }
+  .pc .t h4 { font-size: 15pt; font-weight: 800; text-transform: uppercase; }
+  .pc .t p { text-align:right; color: var(--red); font-style: italic; font-weight: 700; margin: 0; line-height: 1.7; font-size: 10.5pt; }
+
+  /* índice */
+  .idx { list-style: none; margin: 0; padding-top: 4mm; }
+  .idx li { display:flex; justify-content: space-between; padding: 1.6mm 0; font-size: 11pt; margin: 0; }
+
+  /* cajas */
+  .box { background: var(--soft); border-left: 3px solid var(--red); padding: 3mm 4mm; border-radius: 1.5mm; margin-bottom: 3mm; }
+  table { width:100%; border-collapse: collapse; font-size: 9pt; margin: 2mm 0 4mm; }
+  th { background: var(--ink); color:#fff; text-align:left; padding: 2.4mm 3mm; font-weight:700; }
+  td { padding: 2.4mm 3mm; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:nth-child(even) td { background: #f3f3f6; }
+  .tag { display:inline-block; font-size: 7pt; font-weight: 800; color:#fff; padding: .6mm 2.2mm; border-radius: 3mm; background: var(--red); }
+  .tag.d { background: #4a5060; }
+
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+  .grid3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; }
+  .frame { border: 1px solid var(--line); overflow:hidden; background:#fff; }
+  .crop img { display:block; width:100%; }
+  .full { position:absolute; inset:0; }
+  .full img { width:100%; height:100%; display:block; }
+
+  .pend { border: 1.5px dashed #b9bcc7; border-radius: 2mm; height: 50mm; display:flex; align-items:center; justify-content:center;
+          text-align:center; color: var(--muted); font-size: 8.5pt; background:#fafafc; padding: 4mm; }
+</style>
+</head>
+<body>
+
+<!-- 1. CARÁTULA INSTITUCIONAL -->
+<section class="page">
+  <div class="cover">
+    <div class="top">MOMENTO 4 (M4)<br>DEL PROYECTO INTEGRADOR</div>
+    <div class="mid">
+      <h3>Organizador de mesa</h3>
+      <p>Para café de especialidad · Café Martínez</p>
+    </div>
+    <div class="who">Santiago Martínez Salgado Cotrone<br>Diseño Industrial<br>0141531</div>
+    <div class="mat">Diseño Industrial I<br>Cátedra: Lerner<br>2026</div>
+    <div class="up"><div class="u">UP</div><div class="n">Universidad<br>de Palermo</div></div>
+  </div>
+</section>
+
+<!-- 2. PORTADA CREATIVA -->
+<section class="page pc">
+  <div class="pc-img" style="height:130mm"><img src="img/m4_publicitario.jpg"></div>
+  <div class="t">
+    <h1>Organizador<br>de mesa</h1>
+    <div class="dots"></div>
+    <h4>Café Martínez</h4>
+    <p>Alumno: Santiago Martínez Salgado Cotrone</p>
+    <p>Diseño Industrial - 0141531</p>
+    <p>Cátedra: Lerner</p>
+    <p>Diseño Industrial I · 2026</p>
+  </div>
+</section>
+
+<!-- 3. ÍNDICE -->
+<section class="page">
+  <div class="hdr"><h1>Índice</h1><div class="dots"></div><div class="sub">Diseño Industrial I</div></div>
+  <div class="body">
+    <ul class="idx">
+      <li><span>• Descripción del proyecto</span><span>Pág. 04</span></li>
+      <li><span>• Desarrollo y evidencias: boceto inicial</span><span>Pág. 05</span></li>
+      <li><span>• Bajadas formales 01 y 02</span><span>Pág. 06</span></li>
+      <li><span>• Entrega del Momento 3</span><span>Pág. 07</span></li>
+      <li><span>• Rediseño M4: qué cambió y por qué</span><span>Pág. 08</span></li>
+      <li><span>• Panel publicitario</span><span>Pág. 09</span></li>
+      <li><span>• Panel tecnológico</span><span>Pág. 10</span></li>
+      <li><span>• Panel de prototipo</span><span>Pág. 11</span></li>
+      <li><span>• Materiales, procesos y medidas</span><span>Pág. 12</span></li>
+      <li><span>• Proceso de fabricación</span><span>Pág. 13</span></li>
+      <li><span>• Bibliografía y referencias</span><span>Pág. 14</span></li>
+      <li><span>• Reflexión personal</span><span>Pág. 15</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 4. DESCRIPCIÓN DEL PROYECTO -->
+<section class="page">
+  <div class="hdr"><h1>Descripción del proyecto</h1><div class="dots"></div><div class="sub">Organizador de mesa para café de especialidad</div></div>
+  <div class="body">
+    <p>El Proyecto Integrador de Diseño Industrial I propone el rediseño de un producto de uso cotidiano a partir de un problema concreto. Esta carpeta documenta el recorrido de un organizador de mesa pensado para <b>Café Martínez</b>, desde el primer boceto hasta el prototipo final.</p>
+
+    <h2>Consigna</h2>
+    <p><span class="red">Organizador de mesa, "para café de especialidad".</span></p>
+    <p><b>Objetivo:</b> rediseñar un organizador de mesa, fabricado en chapa de acero (proto), que resuelva la contención de servilletas, edulcorantes y azúcar, y que ofrezca un espacio gráfico para la marca y un código QR.</p>
+
+    <h2>Alcance del Momento 4</h2>
+    <p>Realizar un rediseño o mejora del producto y mejorar los paneles: el <b>publicitario</b>, el <b>tecnológico</b> y el <b>prototipo</b>.</p>
+
+    <h2>El caso: Café Martínez</h2>
+    <p>La consigna es general y se aplicó a Café Martínez. El organizador ordena servilletas y sobres sobre la mesa, e incorpora la identidad de la marca (logo y QR) como parte del objeto, bajo el lema <i>"Pequeños detalles, grandes encuentros"</i>.</p>
+
+    <h2>Recorrido del proyecto</h2>
+    <div class="box"><b>Boceto inicial</b> · concepto de planos de chapa que se encuentran y se superponen.</div>
+    <div class="box"><b>Bajadas formales 01 y 02</b> · dos versiones del concepto con color, marca, vistas y desarrollo de chapa.</div>
+    <div class="box"><b>Momento 3</b> · versión compacta en chapa negra con vinilo, patas impresas en 3D y divisor interno.</div>
+    <div class="box"><b>Momento 4</b> · rediseño orientado a la producción en cantidad: logo con corte láser y gráfica en acrílico.</div>
+  </div>
+  <div class="ftr"><span>Diseño Industrial I · Cátedra: Lerner</span><span>Santiago Martínez Salgado Cotrone</span></div>
+</section>
+
+<!-- 5. BOCETO INICIAL -->
+<section class="page">
+  <div class="hdr"><h1>Desarrollo y evidencias</h1><div class="dots"></div><div class="sub">Boceto inicial</div></div>
+  <div class="body">
+    <p>La propuesta parte del <b>encuentro y la superposición de planos de chapa</b> que organizan los elementos del servicio. La morfología surge de dos piezas principales que se relacionan y forman una unidad compacta. Mediante <b>plegado y soldadura</b>, la pieza resuelve sectores para servilletas, azúcar, edulcorante y sal, e incorpora la identidad gráfica de Café Martínez y el código QR.</p>
+    <figure class="frame" style="margin-top:6mm"><img src="img/boceto.jpg" style="width:100%;display:block"><figcaption style="padding-bottom:2mm">Boceto 01 · concepto, vistas frontal y lateral, y detalle de plegado y soldadura.</figcaption></figure>
+  </div>
+  <div class="ftr"><span>Diseño Industrial I · Cátedra: Lerner</span><span>Santiago Martínez Salgado Cotrone</span></div>
+</section>
+
+<!-- 6. BAJADAS FORMALES -->
+<section class="page">
+  <div class="hdr"><h1>Desarrollo y evidencias</h1><div class="dots"></div><div class="sub">Bajadas formales 01 y 02</div></div>
+  <div class="body">
+    <p>El concepto se llevó a dos bajadas formales en tonos marrones de la marca, con vistas acotadas (aprox. 200 × 80 × 80 mm), detalles de uso, materialidad y un <b>desarrollo de la chapa en plano</b>. La 01 resuelve el sector de sobres con un lateral más alto y un frente bajo para las servilletas. La 02 separa los compartimentos de azúcar y edulcorante, y deja un frente de servilletas más limpio.</p>
+    <div class="grid2" style="margin-top:4mm">
+      <figure class="frame"><img src="img/bajada01.jpg" style="width:100%;display:block"></figure>
+      <figure class="frame"><img src="img/bajada02.jpg" style="width:100%;display:block"></figure>
+    </div>
+    <div class="grid2"><figcaption>Bajada formal 01</figcaption><figcaption>Bajada formal 02</figcaption></div>
+  </div>
+  <div class="ftr"><span>Diseño Industrial I · Cátedra: Lerner</span><span>Santiago Martínez Salgado Cotrone</span></div>
+</section>
+
+<!-- 7. MOMENTO 3 -->
+<section class="page">
+  <div class="hdr"><h1>Entrega del Momento 3</h1><div class="dots"></div><div class="sub">Versión negra con vinilo</div></div>
+  <div class="body">
+    <p>En el Momento 3 el organizador se compactó (145 × 90 × 45 mm) y pasó a <b>chapa de acero SAE 1010 de 0,5 mm</b> con pintura en polvo negra. Se sumaron patas impresas en 3D, un divisor interno y la marca resuelta con <b>vinilo de alta densidad</b> sobre la chapa, con el QR en el lateral.</p>
+    <div class="grid3" style="margin-top:4mm">
+      <figure class="frame"><img src="img/m3_publicitario.jpg" style="width:100%;display:block"></figure>
+      <figure class="frame"><img src="img/m3_tecnologico.jpg" style="width:100%;display:block"></figure>
+      <figure class="frame"><img src="img/m3_prototipo.jpg" style="width:100%;display:block"></figure>
+    </div>
+    <div class="grid3"><figcaption>Panel publicitario M3</figcaption><figcaption>Panel tecnológico M3</figcaption><figcaption>Panel de prototipo M3</figcaption></div>
+  </div>
+  <div class="ftr"><span>Diseño Industrial I · Cátedra: Lerner</span><span>Santiago Martínez Salgado Cotrone</span></div>
+</section>
+
+<!-- 8. REDISEÑO M4 -->
+<section class="page">
+  <div class="hdr"><h1>Rediseño M4</h1><div class="dots"></div><div class="sub">Qué cambió y por qué</div></div>
+  <div class="body">
+    <p>El rediseño se orientó a facilitar la <b>producción en cantidad</b>: menos materiales, menos operaciones manuales y la marca resuelta dentro del propio proceso de fabricación.</p>
+    <div class="grid2" style="margin: 3mm 0 1mm">
+      <figure class="frame crop"><div style="overflow:hidden;aspect-ratio:700/400"><img src="img/m3_prototipo.jpg" style="width:202%;max-width:none;margin-left:-4.3%;margin-top:-116.4%"></div></figure>
+      <figure class="frame crop"><div style="overflow:hidden;aspect-ratio:700/400"><img src="img/m4_prototipo.jpg" style="width:202%;max-width:none;margin-left:-4.3%;margin-top:-116.4%"></div></figure>
+    </div>
+    <div class="grid2"><figcaption>Momento 3 · gráfica con vinilo</figcaption><figcaption>Momento 4 · logo calado y acrílico</figcaption></div>
+
+    <table>
+      <tr><th style="width:23%">Aspecto</th><th style="width:25%">M3</th><th style="width:25%">M4</th><th>Razón</th></tr>
+      <tr><td><b>Gráfica</b></td><td>Vinilo sobre la chapa</td><td>Se quita el vinilo</td><td>Elimina un material y una operación manual de aplicación.</td></tr>
+      <tr><td><b>Logo</b></td><td>Vinilo blanco</td><td>"M" calada con corte láser</td><td>Se hace en la misma pasada que el corte de la pieza: más fácil y rápido de producir en cantidad.</td></tr>
+      <tr><td><b>Marca y QR</b></td><td>En la chapa</td><td>En el acrílico divisor</td><td>La información queda en una pieza visible y separada, que puede cambiarse sin modificar el organizador.</td></tr>
+      <tr><td><b>Paleta</b></td><td>Negro y blanco</td><td>Negro y naranja</td><td>Mayor presencia de marca y calidez en la mesa.</td></tr>
+    </table>
+    <div class="box">Se conservan del M3: la chapa SAE 1010 de 0,5 mm con pintura en polvo negra, las patas impresas en 3D con unión a presión, el divisor interno y las medidas generales (145 × 90 × 45 mm).</div>
+  </div>
+  <div class="ftr"><span>Diseño Industrial I · Cátedra: Lerner</span><span>Santiago Martínez Salgado Cotrone</span></div>
+</section>
+
+<!-- 9-11. PANELES M4 -->
+<section class="page"><div class="full"><img src="img/m4_publicitario.jpg"></div></section>
+<section class="page"><div class="full"><img src="img/m4_tecnologico.jpg"></div></section>
+<section class="page"><div class="full"><img src="img/m4_prototipo.jpg"></div></section>
+
+<!-- 12. MATERIALES -->
+<section class="page">
+  <div class="hdr"><h1>Materiales y procesos</h1><div class="dots"></div><div class="sub">Piezas, procesos y medidas</div></div>
+  <div class="body">
+    <table>
+      <tr><th style="width:24%">Pieza</th><th style="width:28%">Material</th><th>Proceso</th></tr>
+      <tr><td>Base y laterales</td><td>Chapa de acero SAE 1010, espesor 0,5 mm</td><td>Corte láser y plegado. Logo "M" calado con láser. Pintura en polvo electrostática negra, curada en horno, terminación mate.</td></tr>
+      <tr><td>Divisor interno</td><td>Chapa de acero SAE 1010</td><td>Corte láser. Unión mediante corte y plegado.</td></tr>
+      <tr><td>Patas</td><td>Impresión 3D, color negro</td><td>Unión a presión en orificios de fijación de la base.</td></tr>
+      <tr><td>Acrílico divisor con gráfica y QR</td><td>Acrílico</td><td>Gráfica y QR aplicados sobre el acrílico. <i>(Espesor y técnica: a completar)</i></td></tr>
+    </table>
+
+    <h2>Detalles constructivos</h2>
+    <ul>
+      <li><b>Bordes redondeados</b>, sin aristas filosas.</li>
+      <li><b>Orificios de fijación</b> para las patas.</li>
+      <li><b>Unión por corte y plegado</b> del divisor.</li>
+    </ul>
+
+    <h2>Medidas finales</h2>
+    <table>
+      <tr><th>Largo</th><th>Ancho</th><th>Alto</th></tr>
+      <tr><td>145 mm</td><td>90 mm</td><td>45 mm</td></tr>
+    </table>
+  </div>
+  <div class="ftr"><span>Diseño Industrial I · Cátedra: Lerner</span><span>Santiago Martínez Salgado Cotrone</span></div>
+</section>
+
+<!-- 13. PROCESO DE FABRICACIÓN -->
+<section class="page">
+  <div class="hdr"><h1>Proceso de fabricación</h1><div class="dots"></div><div class="sub">Evidencias del prototipo real</div></div>
+  <div class="body">
+    <p>Registro fotográfico de la construcción del prototipo: corte, plegado, pintura, armado y prueba de uso.</p>
+    <div class="grid2" style="margin-top:4mm">
+      <div class="pend">Foto 1 · corte láser de la chapa<br>(a completar)</div>
+      <div class="pend">Foto 2 · plegado<br>(a completar)</div>
+      <div class="pend">Foto 3 · pintura y patas<br>(a completar)</div>
+      <div class="pend">Foto 4 · armado y acrílico<br>(a completar)</div>
+    </div>
+  </div>
+  <div class="ftr"><span>Diseño Industrial I · Cátedra: Lerner</span><span>Santiago Martínez Salgado Cotrone</span></div>
+</section>
+
+<!-- 14. BIBLIOGRAFÍA -->
+<section class="page">
+  <div class="hdr"><h1>Bibliografía y referencias</h1><div class="dots"></div><div class="sub">Fuentes consultadas</div></div>
+  <div class="body">
+    <h2>Material de cátedra</h2>
+    <ul><li>Cátedra Lerner, Diseño Industrial I, Universidad de Palermo. <i>(Ficha del PI y material de clase)</i></li></ul>
+    <h2>Referentes y fuentes</h2>
+    <ul><li><i>(A completar: referentes de organizadores de mesa, proveedores, normas o sitios consultados)</i></li></ul>
+    <h2>Herramientas utilizadas</h2>
+    <ul><li><i>(A completar: software de modelado, de renderizado y de edición de paneles)</i></li></ul>
+  </div>
+  <div class="ftr"><span>Diseño Industrial I · Cátedra: Lerner</span><span>Santiago Martínez Salgado Cotrone</span></div>
+</section>
+
+<!-- 15. REFLEXIÓN -->
+<section class="page">
+  <div class="hdr"><h1>Reflexión personal</h1><div class="dots"></div><div class="sub">Organizador de mesa</div></div>
+  <div class="body">
+    <h2>¿Qué me ayudó a comprender este proyecto?</h2>
+    <p>Partir de un problema concreto, un organizador para una cafetería, y recorrer todas las etapas: boceto, bajada formal, prototipo y rediseño. Ver cómo cada decisión de diseño depende del material y del proceso con el que se fabrica la pieza.</p>
+
+    <h2>¿Qué exploré a lo largo del proceso?</h2>
+    <ul>
+      <li><b>La chapa de acero:</b> cómo un plano cortado y plegado puede contener y ordenar objetos distintos.</li>
+      <li><b>El corte láser:</b> cómo resolver la pieza y la gráfica de la marca en una misma operación.</li>
+      <li><b>La marca como parte del objeto:</b> logo calado en la chapa y QR en el acrílico.</li>
+    </ul>
+
+    <h2>¿Qué aprendí en el rediseño?</h2>
+    <p>Que mejorar un producto no siempre es agregarle cosas. En el Momento 4 quité el vinilo y pasé el logo al corte láser, y la gráfica y el QR al acrílico. El resultado es un objeto más simple de producir en cantidad y más fácil de actualizar.</p>
+
+    <h2>¿Cuáles fueron los logros?</h2>
+    <ul>
+      <li>Un prototipo real, funcional y coherente con la identidad de Café Martínez.</li>
+      <li>Una solución pensada para producción en serie, no solo para una pieza única.</li>
+      <li>Un recorrido completo, documentado desde el boceto hasta el prototipo.</li>
+    </ul>
+  </div>
+  <div class="ftr"><span>Diseño Industrial I · Cátedra: Lerner</span><span>Santiago Martínez Salgado Cotrone</span></div>
+</section>
+
+</body>
+</html>
